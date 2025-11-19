@@ -25,7 +25,7 @@ const Button = React.forwardRef((props, ref) => {
     containerClassName,
     children,
     active = false,
-    highlight = false, /// Not currently supported here
+    // highlight = false, /// Not currently supported here
     withoutButtonTag = false,
     textColor,
     noTransition = false,
