@@ -1,15 +1,29 @@
+// The dependancy imports form node_modules
 import React, {
   useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState,
 } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import ErrorViewTemplateSmall from 'services/bugsnag/ErrorViewTemplateSmall';
-import Widget from 'widgets/Widget';
-import useButtonLayoutMap from 'ui/app/inputs/buttons/partials/use-button-layout-map';
-import { useGSAP } from '@gsap/react';
-import useColorValue from 'support/hooks/ui/styling/use-color-value';
 import gsap from 'gsap';
-import twClassNames from 'support/utilities/tailwind/twClassNames';
+import { useGSAP } from '@gsap/react';
+
+// The hooks that contain in the offered source. 
+// Update the paths as needed.
+import useButtonLayoutMap from '../hooks/use-button-layout-map.js';
+
+/* THE HOOKS AND UTILITIES THAT DOES NOT CONTAIN IN THE OFFERED SOURCE
+The following hooks and utilities that does not contain in the offered source, 
+I created the simple implementations based on the usage. And update the paths as needed.
+*/
+/* 
+Based on the usage, this hook should return a color value string based on the input color name.
+that is not necessarily use a React custom hook since that return a constant value without using any of the React hook.
+*/
+// import useColorValue from './hooks/use-color-value';
+
+import Widget from './Widget';
+import { twClassNames } from '../lib/util';
+import ErrorViewTemplateSmall from './ErrorViewTemplateSmall';
 
 /**
  * A wrapper component for adding a button
@@ -43,8 +57,8 @@ const Button = React.forwardRef((props, ref) => {
     ...forwardProps
   } = props;
 
-  const purple = useColorValue('purple');
-  const red = useColorValue('red');
+  // const purple = useColorValue('purple');
+  // const red = useColorValue('red');
 
   const baseStyling = [
     'inline-flex',
@@ -209,7 +223,8 @@ const Button = React.forwardRef((props, ref) => {
         )
       }
     </>
-  ), [layout, spanTransformShine, loadingAnimation, purple]);
+    // remove purple which is no usage.
+  ), [layout, spanTransformShine, loadingAnimation]);
 
   const timelineRef = useRef(gsap.timeline({ paused: true }));
 
@@ -249,7 +264,7 @@ const Button = React.forwardRef((props, ref) => {
           });
         } else {
           timeline.to(fillUpAnimRef.current, {
-            backgroundColor: red,
+            backgroundColor: 'red', // change the red value to semantic css variable
             width: '0%',
             duration: 1,
             ease: 'circ.out',
@@ -270,7 +285,11 @@ const Button = React.forwardRef((props, ref) => {
   );
 
   const buttonWithMagnet = (
-    <span className={twClassNames(containerClassName, '-m-4 p-4 rounded-full inline-flex box-content')} ref={magnetRef} onMouseMove={contextSafe(moveMagnet)} onMouseLeave={contextSafe(moveOut)}>
+    <span className={twClassNames(containerClassName, '-m-4 p-4 rounded-full inline-flex box-content')} ref={magnetRef} 
+    // the moveMagnet and moveOut are for magnet effect that should not directly passed into the React component, that will cause the unexpected behaviro.
+    // The Refs directly pass into the span element will re-render mutiple times may not working as expected.
+    onMouseMove={contextSafe(moveMagnet)} onMouseLeave={contextSafe(moveOut)}
+    >
       {button}
     </span>
   );
