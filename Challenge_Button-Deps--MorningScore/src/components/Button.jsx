@@ -5,6 +5,8 @@ import React, {
   useMemo,
   useRef,
   useState,
+  createContext,
+  useContext,
 } from "react";
 import PropTypes from "prop-types";
 import classNames from "classnames";
@@ -36,6 +38,8 @@ import {
 
 import ErrorViewTemplateSmall from "./ErrorViewTemplateSmall";
 import Widget from "./Widget";
+
+const ButtonContext = createContext();
 
 const Button = React.forwardRef((props, ref) => {
   const {
@@ -93,7 +97,7 @@ const Button = React.forwardRef((props, ref) => {
   );
   const buttonTextSize = textSizeMap[size];
 
-  const animationElements = useMemo(
+  const AnimationElements = useMemo(
     () => (
       <>
         {layout === "primary" && (
@@ -217,54 +221,35 @@ const Button = React.forwardRef((props, ref) => {
   }, [loadingPercent]);
 
   return (
-    <Widget FallbackComponent={ErrorViewTemplateSmall}>
-      {withoutButtonTag ? (
-        <span
-          ref={buttonRef}
-          className={classNames(buttonClasses, "inline-flex", buttonTextSize)}
-          {...forwardProps}
-          onMouseEnter={enterAndOut}
-          onMouseOut={enterAndOut}
-        >
-          {animationElements}
-          {children}
-        </span>
-      ) : (
+    <ButtonContext.Provider value={{ layout, withoutButtonTag }}>
+      <Widget FallbackComponent={ErrorViewTemplateSmall}>
         <ButtonWithMagnet
-          layout={layout}
           ref={magnetRef}
           containerClassName={containerClassName}
           moveMagnet={moveMagnet}
           moveOut={moveOut}
-          buttonRef={buttonRef}
-          buttonClasses={buttonClasses}
-          buttonTextSize={buttonTextSize}
-          isLoading={isLoading}
-          animationElements={animationElements}
-          enterAndOut={enterAndOut}
-          forwardProps={forwardProps}
-          baseButton={
-            <BaseButton
-              ref={buttonRef}
-              buttonClasses={buttonClasses}
-              buttonTextSize={buttonTextSize}
-              isLoading={isLoading}
-              animationElements={animationElements}
-              enterAndOut={enterAndOut}
-              forwardProps={forwardProps}
-            >
-              {children}
-            </BaseButton>
-          }
         >
-          {children}
+          <BaseButton
+            ref={buttonRef}
+            buttonClasses={buttonClasses}
+            buttonTextSize={buttonTextSize}
+            isLoading={isLoading}
+            animationElements={AnimationElements}
+            withoutButtonTag={withoutButtonTag}
+            enterAndOut={enterAndOut}
+            forwardProps={forwardProps}
+          >
+            {children}
+          </BaseButton>
         </ButtonWithMagnet>
-      )}
-    </Widget>
+      </Widget>
+    </ButtonContext.Provider>
   );
 });
 
 const BaseButton = React.forwardRef((props, ref) => {
+  const { withoutButtonTag } = useContext(ButtonContext);
+
   const {
     buttonClasses,
     buttonTextSize,
@@ -279,7 +264,9 @@ const BaseButton = React.forwardRef((props, ref) => {
       ref={ref}
       className={classNames(
         buttonClasses,
-        isLoading
+        withoutButtonTag
+          ? "inline-flex"
+          : isLoading
           ? "bg-white text-purple hover:bg-white hover:text-purple active:bg-white active:text-purple"
           : "",
         buttonTextSize
@@ -295,26 +282,26 @@ const BaseButton = React.forwardRef((props, ref) => {
 });
 
 const ButtonWithMagnet = React.forwardRef((props, ref) => {
-  const { layout, containerClassName, moveMagnet, moveOut, baseButton } = props;
+  const { containerClassName, moveMagnet, moveOut, children } = props;
+  const { layout, withoutButtonTag } = useContext(ButtonContext);
 
   const { contextSafe } = useGSAP();
 
-  return layout === "primary" ? (
+  // display the magnet button when the layout is primary and withoutButtonTag is false
+  return layout === "primary" && !withoutButtonTag ? (
     <span
       className={twClassNames(
         containerClassName,
         "-m-4 p-4 rounded-full inline-flex box-content"
       )}
       ref={ref}
-      // the moveMagnet and moveOut are for magnet effect that should not directly passed into the React component, that will cause the unexpected behaviro.
-      // The Refs directly pass into the span element will re-render mutiple times may not working as expected.
       onMouseMove={contextSafe(moveMagnet)}
       onMouseLeave={contextSafe(moveOut)}
     >
-      {baseButton}
+      {children}
     </span>
   ) : (
-    baseButton
+    children
   );
 });
 
