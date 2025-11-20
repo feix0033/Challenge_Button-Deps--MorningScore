@@ -1,6 +1,5 @@
 // The dependancy imports form node_modules
 import React, {
-  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -15,6 +14,7 @@ import { useGSAP } from "@gsap/react";
 // The hooks that contain in the offered source.
 // Update the paths as needed.
 import useButtonLayoutMap from "../hooks/use-button-layout-map.js";
+import { useMouseActions } from "../hooks/use-mouse-actions.js";
 
 /* THE HOOKS AND UTILITIES THAT DOES NOT CONTAIN IN THE OFFERED SOURCE
 The following hooks and utilities that does not contain in the offered source, 
@@ -26,7 +26,6 @@ that is not necessarily use a React custom hook since that return a constant val
 */
 // import useColorValue from './hooks/use-color-value';
 
-import Widget from "./Widget";
 import {
   twClassNames,
   textSizeMap,
@@ -34,7 +33,9 @@ import {
   sizeMap,
   baseStyling,
 } from "../lib/util";
+
 import ErrorViewTemplateSmall from "./ErrorViewTemplateSmall";
+import Widget from "./Widget";
 
 const Button = React.forwardRef((props, ref) => {
   const {
@@ -74,6 +75,13 @@ const Button = React.forwardRef((props, ref) => {
 
   const { contextSafe } = useGSAP();
 
+  const { moveMagnet, moveOut, enterAndOut } = useMouseActions(
+    layout,
+    buttonRef,
+    magnetRef,
+    withoutButtonTag,
+    setSpanTransformShine
+  );
   const layoutMap = useButtonLayoutMap(textColor, hoverEnabled);
 
   const buttonClasses = twClassNames(
@@ -86,76 +94,6 @@ const Button = React.forwardRef((props, ref) => {
     "tracking-wide"
   );
   const buttonTextSize = textSizeMap[size];
-
-  const moveMagnet = (event) => {
-    if (!(layout === "primary" && !withoutButtonTag)) return;
-    if (!magnetRef.current) return;
-    const magnetButton = event.currentTarget;
-    const bounding = magnetButton.getBoundingClientRect();
-    const strength = 10;
-
-    gsap.to(magnetRef.current, {
-      x:
-        ((event.clientX - bounding.left) / magnetButton.offsetWidth - 0.5) *
-        strength,
-      y:
-        ((event.clientY - bounding.top) / magnetButton.offsetHeight - 0.5) *
-        strength,
-    });
-  };
-
-  const moveOut = (event) => {
-    if (!(layout === "primary" && !withoutButtonTag)) return;
-    if (!magnetRef.current) return;
-    if (
-      magnetRef.current !== event.currentTarget &&
-      magnetRef.current?.contains(event.currentTarget)
-    )
-      return;
-    gsap.to(magnetRef.current, {
-      x: 0,
-      y: 0,
-      ease: "power4.out",
-      duration: 1,
-    });
-  };
-
-  const enterAndOut = useCallback(
-    (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      if (!buttonRef.current) return;
-
-      // Handle mouseenter event
-      if (e.type === "mouseenter") {
-        if (layout === "primary") {
-          setSpanTransformShine({
-            translate: "100% 0%",
-          });
-        }
-      }
-
-      // mouseout semantics: https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/relatedTarget
-      // the element that triggered the event, entered to, exited from
-      // console.log(e.currentTarget, e.relatedTarget, e.target);
-
-      // Handle mouseleave event
-      if (e.type === "mouseout") {
-        // Check if the mouse is leaving the button and not entering a child element
-        if (
-          buttonRef.current &&
-          !buttonRef.current?.contains(e.relatedTarget)
-        ) {
-          if (layout === "primary") {
-            setSpanTransformShine({
-              translate: "-100% 0%",
-            });
-          }
-        }
-      }
-    },
-    [layout]
-  );
 
   const animationElements = useMemo(
     () => (
