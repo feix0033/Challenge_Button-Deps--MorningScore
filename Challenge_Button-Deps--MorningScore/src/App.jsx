@@ -3,10 +3,9 @@ import Button from './components/Button'
 function App() {
 
   return (
-    <>
-      <div className='bg-red-300'>Hello</div>
+    <div className="flex justify-center items-center w-full h-dvh">
       <Button>button</Button>
-    </>
+    </div>
   )
 }
 

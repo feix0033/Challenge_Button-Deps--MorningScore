@@ -10,7 +10,11 @@ import PropTypes from "prop-types";
  * @returns {JSX.Element} The rendered Widget component.
  */
 const Widget = (props) => {
-  return <div className="border border-gray-500">{props.children}</div>;
+  return (
+    <div className="flex items-center justify-center rounded-md w-80 h-64 bg-purple-200">
+      {props.children}
+    </div>
+  );
 };
 
 Widget.propTypes = {
