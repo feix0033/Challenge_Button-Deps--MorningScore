@@ -73,8 +73,6 @@ const Button = React.forwardRef((props, ref) => {
   const fillUpAnimRef = useRef();
   const timelineRef = useRef(gsap.timeline({ paused: true }));
 
-  const { contextSafe } = useGSAP();
-
   const { moveMagnet, moveOut, enterAndOut } = useMouseActions(
     layout,
     buttonRef,
@@ -218,9 +216,65 @@ const Button = React.forwardRef((props, ref) => {
     timelineRef.current.restart();
   }, [loadingPercent]);
 
-  const button = (
+  return (
+    <Widget FallbackComponent={ErrorViewTemplateSmall}>
+      {withoutButtonTag ? (
+        <span
+          ref={buttonRef}
+          className={classNames(buttonClasses, "inline-flex", buttonTextSize)}
+          {...forwardProps}
+          onMouseEnter={enterAndOut}
+          onMouseOut={enterAndOut}
+        >
+          {animationElements}
+          {children}
+        </span>
+      ) : layout === "primary" ? (
+        <ButtonWithMagnet
+          ref={magnetRef}
+          containerClassName={containerClassName}
+          moveMagnet={moveMagnet}
+          moveOut={moveOut}
+          buttonRef={buttonRef}
+          buttonClasses={buttonClasses}
+          buttonTextSize={buttonTextSize}
+          isLoading={isLoading}
+          animationElements={animationElements}
+          enterAndOut={enterAndOut}
+          forwardProps={forwardProps}
+        >
+          {children}
+        </ButtonWithMagnet>
+      ) : (
+        <BaseButton
+          ref={buttonRef}
+          buttonClasses={buttonClasses}
+          buttonTextSize={buttonTextSize}
+          isLoading={isLoading}
+          animationElements={animationElements}
+          enterAndOut={enterAndOut}
+          forwardProps={forwardProps}
+        >
+          {children}
+        </BaseButton>
+      )}
+    </Widget>
+  );
+});
+
+const BaseButton = React.forwardRef((props, ref) => {
+  const {
+    buttonClasses,
+    buttonTextSize,
+    isLoading,
+    animationElements,
+    children,
+    enterAndOut,
+    forwardProps,
+  } = props;
+  return (
     <button
-      ref={buttonRef}
+      ref={ref}
       className={classNames(
         buttonClasses,
         isLoading
@@ -236,42 +290,49 @@ const Button = React.forwardRef((props, ref) => {
       {children}
     </button>
   );
+});
 
-  const buttonWithMagnet = (
+const ButtonWithMagnet = React.forwardRef((props, ref) => {
+  const {
+    containerClassName,
+    moveMagnet,
+    moveOut,
+    buttonRef,
+    buttonClasses,
+    buttonTextSize,
+    isLoading,
+    animationElements,
+    children,
+    enterAndOut,
+    forwardProps,
+  } = props;
+
+  const { contextSafe } = useGSAP();
+
+  return (
     <span
       className={twClassNames(
         containerClassName,
         "-m-4 p-4 rounded-full inline-flex box-content"
       )}
-      ref={magnetRef}
+      ref={ref}
       // the moveMagnet and moveOut are for magnet effect that should not directly passed into the React component, that will cause the unexpected behaviro.
       // The Refs directly pass into the span element will re-render mutiple times may not working as expected.
       onMouseMove={contextSafe(moveMagnet)}
       onMouseLeave={contextSafe(moveOut)}
     >
-      {button}
+      <BaseButton
+        ref={buttonRef}
+        buttonClasses={buttonClasses}
+        buttonTextSize={buttonTextSize}
+        isLoading={isLoading}
+        animationElements={animationElements}
+        enterAndOut={enterAndOut}
+        forwardProps={forwardProps}
+      >
+        {children}
+      </BaseButton>
     </span>
-  );
-
-  return (
-    <Widget FallbackComponent={ErrorViewTemplateSmall}>
-      {withoutButtonTag ? (
-        <span
-          ref={buttonRef}
-          className={classNames(buttonClasses, "inline-flex", buttonTextSize)}
-          {...forwardProps}
-          onMouseEnter={enterAndOut}
-          onMouseOut={enterAndOut}
-        >
-          {animationElements}
-          {children}
-        </span>
-      ) : layout === "primary" ? (
-        buttonWithMagnet
-      ) : (
-        button
-      )}
-    </Widget>
   );
 });
 
