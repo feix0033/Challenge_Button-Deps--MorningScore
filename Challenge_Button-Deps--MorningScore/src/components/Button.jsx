@@ -64,6 +64,16 @@ const Button = React.forwardRef((props, ref) => {
     ...forwardProps
   } = props;
 
+  const [spanTransformShine, setSpanTransformShine] = useState({
+    translate: "-100% 0%",
+  });
+  const magnetRef = useRef();
+  const buttonRef = useRef();
+  const fillUpAnimRef = useRef();
+  const timelineRef = useRef(gsap.timeline({ paused: true }));
+
+  const { contextSafe } = useGSAP();
+
   const layoutMap = useButtonLayoutMap(textColor, hoverEnabled);
 
   const buttonClasses = twClassNames(
@@ -75,10 +85,8 @@ const Button = React.forwardRef((props, ref) => {
     className,
     "tracking-wide"
   );
-
   const buttonTextSize = textSizeMap[size];
 
-  const magnetRef = useRef();
   const moveMagnet = (event) => {
     if (!(layout === "primary" && !withoutButtonTag)) return;
     if (!magnetRef.current) return;
@@ -111,15 +119,6 @@ const Button = React.forwardRef((props, ref) => {
       duration: 1,
     });
   };
-
-  const { contextSafe } = useGSAP();
-
-  const [spanTransformShine, setSpanTransformShine] = useState({
-    translate: "-100% 0%",
-  });
-  const buttonRef = useRef();
-
-  useImperativeHandle(ref, () => buttonRef.current);
 
   const enterAndOut = useCallback(
     (e) => {
@@ -157,8 +156,6 @@ const Button = React.forwardRef((props, ref) => {
     },
     [layout]
   );
-
-  const fillUpAnimRef = useRef();
 
   const animationElements = useMemo(
     () => (
@@ -228,12 +225,6 @@ const Button = React.forwardRef((props, ref) => {
     ]
   );
 
-  const timelineRef = useRef(gsap.timeline({ paused: true }));
-
-  useEffect(() => {
-    timelineRef.current.restart();
-  }, [loadingPercent]);
-
   useGSAP(() => {
     if (buttonRef.current && fillUpAnimRef.current) {
       if (loadingAnimation && typeof loadingPercent === "number") {
@@ -282,6 +273,12 @@ const Button = React.forwardRef((props, ref) => {
       }
     }
   }, [loadingAnimation, loadingPercent, hasErrors]);
+
+  useImperativeHandle(ref, () => buttonRef.current);
+
+  useEffect(() => {
+    timelineRef.current.restart();
+  }, [loadingPercent]);
 
   const button = (
     <button
