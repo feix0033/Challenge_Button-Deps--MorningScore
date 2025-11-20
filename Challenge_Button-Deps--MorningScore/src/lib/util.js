@@ -1,3 +1,7 @@
+/* twClassNames
+This utility funciton is not included in the source code. And it not inlcuded in the challenage.
+So, auto generates by Github Copilot.
+ */
 export const twClassNames = (...args) => {
   let className = "";
   args.forEach((arg) => {
@@ -16,6 +20,10 @@ export const twClassNames = (...args) => {
   return className;
 };
 
+/* textSizeMap
+The text size map is staric style object that do not re-render in the React component.
+Therefore, move it into util.js to avoid re-creating the object on each render.
+*/
 export const textSizeMap = {
   large: "",
   default: "text-sm",

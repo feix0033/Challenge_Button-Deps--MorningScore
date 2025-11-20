@@ -30,10 +30,6 @@ import Widget from "./Widget";
 import { twClassNames, textSizeMap } from "../lib/util";
 import ErrorViewTemplateSmall from "./ErrorViewTemplateSmall";
 
-/**
- * A wrapper component for adding a button
- */
-
 const Button = React.forwardRef((props, ref) => {
   const {
     layout = "primary",
