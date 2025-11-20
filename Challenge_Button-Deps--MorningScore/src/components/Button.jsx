@@ -229,8 +229,9 @@ const Button = React.forwardRef((props, ref) => {
           {animationElements}
           {children}
         </span>
-      ) : layout === "primary" ? (
+      ) : (
         <ButtonWithMagnet
+          layout={layout}
           ref={magnetRef}
           containerClassName={containerClassName}
           moveMagnet={moveMagnet}
@@ -242,21 +243,22 @@ const Button = React.forwardRef((props, ref) => {
           animationElements={animationElements}
           enterAndOut={enterAndOut}
           forwardProps={forwardProps}
+          baseButton={
+            <BaseButton
+              ref={buttonRef}
+              buttonClasses={buttonClasses}
+              buttonTextSize={buttonTextSize}
+              isLoading={isLoading}
+              animationElements={animationElements}
+              enterAndOut={enterAndOut}
+              forwardProps={forwardProps}
+            >
+              {children}
+            </BaseButton>
+          }
         >
           {children}
         </ButtonWithMagnet>
-      ) : (
-        <BaseButton
-          ref={buttonRef}
-          buttonClasses={buttonClasses}
-          buttonTextSize={buttonTextSize}
-          isLoading={isLoading}
-          animationElements={animationElements}
-          enterAndOut={enterAndOut}
-          forwardProps={forwardProps}
-        >
-          {children}
-        </BaseButton>
       )}
     </Widget>
   );
@@ -293,23 +295,11 @@ const BaseButton = React.forwardRef((props, ref) => {
 });
 
 const ButtonWithMagnet = React.forwardRef((props, ref) => {
-  const {
-    containerClassName,
-    moveMagnet,
-    moveOut,
-    buttonRef,
-    buttonClasses,
-    buttonTextSize,
-    isLoading,
-    animationElements,
-    children,
-    enterAndOut,
-    forwardProps,
-  } = props;
+  const { layout, containerClassName, moveMagnet, moveOut, baseButton } = props;
 
   const { contextSafe } = useGSAP();
 
-  return (
+  return layout === "primary" ? (
     <span
       className={twClassNames(
         containerClassName,
@@ -321,18 +311,10 @@ const ButtonWithMagnet = React.forwardRef((props, ref) => {
       onMouseMove={contextSafe(moveMagnet)}
       onMouseLeave={contextSafe(moveOut)}
     >
-      <BaseButton
-        ref={buttonRef}
-        buttonClasses={buttonClasses}
-        buttonTextSize={buttonTextSize}
-        isLoading={isLoading}
-        animationElements={animationElements}
-        enterAndOut={enterAndOut}
-        forwardProps={forwardProps}
-      >
-        {children}
-      </BaseButton>
+      {baseButton}
     </span>
+  ) : (
+    baseButton
   );
 });
 
