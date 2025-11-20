@@ -198,7 +198,7 @@ const Button = React.forwardRef((props, ref) => {
         }
       }
     },
-    [layout, withoutButtonTag]
+    [layout]
   );
 
   const fillUpAnimRef = useRef();
@@ -260,7 +260,7 @@ const Button = React.forwardRef((props, ref) => {
       </>
       // remove purple which is no usage.
     ),
-    [layout, spanTransformShine, loadingAnimation]
+    [layout, spanTransformShine, loadingAnimation, fromLoadingPercent, buttonClasses, buttonTextSize, children]
   );
 
   const timelineRef = useRef(gsap.timeline({ paused: true }));
