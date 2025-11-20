@@ -353,26 +353,20 @@ const Button = React.forwardRef((props, ref) => {
     </span>
   );
 
-  if (!withoutButtonTag) {
-    return (
-      <Widget FallbackComponent={ErrorViewTemplateSmall}>
-        {layout === "primary" ? buttonWithMagnet : button}
-      </Widget>
-    );
-  }
-
   return (
     <Widget FallbackComponent={ErrorViewTemplateSmall}>
+      {withoutButtonTag ?
       <span
-        ref={buttonRef}
-        className={classNames(buttonClasses, "inline-flex", buttonTextSize)}
-        {...forwardProps}
-        onMouseEnter={enterAndOut}
-        onMouseOut={enterAndOut}
+      ref={buttonRef}
+      className={classNames(buttonClasses, "inline-flex", buttonTextSize)}
+      {...forwardProps}
+      onMouseEnter={enterAndOut}
+      onMouseOut={enterAndOut}
       >
         {animationElements}
         {children}
       </span>
+      : layout === "primary" ? buttonWithMagnet : button}
     </Widget>
   );
 });
