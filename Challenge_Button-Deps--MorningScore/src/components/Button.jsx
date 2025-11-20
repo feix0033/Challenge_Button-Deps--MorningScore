@@ -27,7 +27,7 @@ that is not necessarily use a React custom hook since that return a constant val
 // import useColorValue from './hooks/use-color-value';
 
 import Widget from "./Widget";
-import { twClassNames } from "../lib/util";
+import { twClassNames, textSizeMap } from "../lib/util";
 import ErrorViewTemplateSmall from "./ErrorViewTemplateSmall";
 
 /**
@@ -92,14 +92,7 @@ const Button = React.forwardRef((props, ref) => {
     custom: "",
   };
 
-  const textSizeMap = {
-    large: "",
-    default: "text-sm",
-    small: "text-smedium",
-    xsmall: "text-xs",
-    xxsmall: "text-xs",
-    custom: "",
-  };
+
 
   const widthMap = {
     default: "",

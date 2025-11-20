@@ -15,3 +15,12 @@ export const twClassNames = (...args) => {
   });
   return className;
 };
+
+export const textSizeMap = {
+  large: "",
+  default: "text-sm",
+  small: "text-smedium",
+  xsmall: "text-xs",
+  xxsmall: "text-xs",
+  custom: "",
+};
