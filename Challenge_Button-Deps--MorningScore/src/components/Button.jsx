@@ -260,7 +260,15 @@ const Button = React.forwardRef((props, ref) => {
       </>
       // remove purple which is no usage.
     ),
-    [layout, spanTransformShine, loadingAnimation, fromLoadingPercent, buttonClasses, buttonTextSize, children]
+    [
+      layout,
+      spanTransformShine,
+      loadingAnimation,
+      fromLoadingPercent,
+      buttonClasses,
+      buttonTextSize,
+      children,
+    ]
   );
 
   const timelineRef = useRef(gsap.timeline({ paused: true }));
@@ -355,18 +363,22 @@ const Button = React.forwardRef((props, ref) => {
 
   return (
     <Widget FallbackComponent={ErrorViewTemplateSmall}>
-      {withoutButtonTag ?
-      <span
-      ref={buttonRef}
-      className={classNames(buttonClasses, "inline-flex", buttonTextSize)}
-      {...forwardProps}
-      onMouseEnter={enterAndOut}
-      onMouseOut={enterAndOut}
-      >
-        {animationElements}
-        {children}
-      </span>
-      : layout === "primary" ? buttonWithMagnet : button}
+      {withoutButtonTag ? (
+        <span
+          ref={buttonRef}
+          className={classNames(buttonClasses, "inline-flex", buttonTextSize)}
+          {...forwardProps}
+          onMouseEnter={enterAndOut}
+          onMouseOut={enterAndOut}
+        >
+          {animationElements}
+          {children}
+        </span>
+      ) : layout === "primary" ? (
+        buttonWithMagnet
+      ) : (
+        button
+      )}
     </Widget>
   );
 });
