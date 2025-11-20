@@ -27,7 +27,13 @@ that is not necessarily use a React custom hook since that return a constant val
 // import useColorValue from './hooks/use-color-value';
 
 import Widget from "./Widget";
-import { twClassNames, textSizeMap } from "../lib/util";
+import {
+  twClassNames,
+  textSizeMap,
+  widthMap,
+  sizeMap,
+  baseStyling,
+} from "../lib/util";
 import ErrorViewTemplateSmall from "./ErrorViewTemplateSmall";
 
 const Button = React.forwardRef((props, ref) => {
@@ -58,51 +64,13 @@ const Button = React.forwardRef((props, ref) => {
     ...forwardProps
   } = props;
 
-  // const purple = useColorValue('purple');
-  // const red = useColorValue('red');
-
-  const baseStyling = [
-    "inline-flex",
-    { "items-center justify-center": center },
-    "text-center",
-    [`font-${fontWeight}`],
-    "rounded",
-    { "outline-none focus-visible:outline-purple": defaultOutline },
-    { "transition ease-in-out duration-150": !noTransition },
-    { "whitespace-no-wrap": textNoWrap },
-    "cursor-pointer",
-    "disabled:cursor-default",
-    "z-0 relative",
-  ];
-
-  const sizeMap = {
-    large: ["h-12 py-1", { "px-4": defaultPadding && layout !== "text" }],
-    default: [
-      "h-10",
-      { "px-3.5": defaultPadding && layout !== "text" },
-      { "h-auto": !textNoWrap },
-    ],
-    small: ["h-10", { "px-3": defaultPadding && layout !== "text" }],
-    xsmall: ["h-8", { "px-2.5": defaultPadding && layout !== "text" }],
-    xxsmall: ["h-6", { "px-2": defaultPadding && layout !== "text" }],
-    custom: "",
-  };
-
-
-
-  const widthMap = {
-    default: "",
-    full: "w-full",
-    square: size === "small" ? "w-10" : size === "large" ? "w-12" : "w-11",
-  };
-
   const layoutMap = useButtonLayoutMap(textColor, hoverEnabled);
 
   const buttonClasses = twClassNames(
-    baseStyling,
-    sizeMap[size],
+    baseStyling(center, fontWeight, defaultOutline, noTransition, textNoWrap),
+    sizeMap(defaultPadding, layout, textNoWrap)[size],
     isLoading ? "cursor-wait border border-purple" : layoutMap[layout][active],
-    widthMap[width],
+    widthMap(size)[width],
     { [`text-${textColor}`]: textColor },
     className,
     "tracking-wide"
