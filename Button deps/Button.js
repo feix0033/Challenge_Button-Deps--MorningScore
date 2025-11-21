@@ -12,26 +12,26 @@ import PropTypes from "prop-types";
 // npm i classnames -D
 import classNames from "classnames";
 
-/* This component was not include the resource, I create a temporary component instead */
+/* This component was not included in the resource, so I created a temporary component instead */
 import ErrorViewTemplateSmall from "services/bugsnag/ErrorViewTemplateSmall";
-/* Same above, create a temporary component */
+/* Same as above, created a temporary component */
 import Widget from "widgets/Widget";
 
 import useButtonLayoutMap from "ui/app/inputs/buttons/partials/use-button-layout-map";
 // npm i @gsap/react -D
 import { useGSAP } from "@gsap/react";
-/* 
-The utility is not included in the resource. 
-But since it only using for get two color values, 
-And one is no usage, just simply remove it and set the semantic css color instead 
+/*
+The utility is not included in the resource.
+But since it is only used to get two color values,
+and one has no usage, simply remove it and use semantic CSS color instead.
 */
 import useColorValue from "support/hooks/ui/styling/use-color-value";
 // npm i gsap -D
 import gsap from "gsap";
-/* 
+/*
 The utility is not included in the resource.
-During the refactoring, here also import the classNames util that can instead of this. 
-So simple implemented and then removed it.
+During refactoring, the classNames util was also imported and can replace this.
+So it was simply implemented and then removed.
 */
 import twClassNames from "support/utilities/tailwind/twClassNames";
 
@@ -40,10 +40,10 @@ import twClassNames from "support/utilities/tailwind/twClassNames";
  */
 
 const Button = React.forwardRef((props, ref) => {
-  /* 
-  Component attributes 
-  Here is the destructuring of props with default values. 
-  For further refactoring, maybe it can be encapsulate to muti object/array instead of long list.
+  /*
+  Component attributes
+  Here is the destructuring of props with default values.
+  For further refactoring, maybe it can be encapsulated into multiple objects/arrays instead of a long list.
   */
   const {
     layout = "primary",
@@ -72,21 +72,21 @@ const Button = React.forwardRef((props, ref) => {
     ...forwardProps
   } = props;
 
-  /* 
-  Call the useColorValue hook with the default colors, here the color is hard code. 
-  The hook useColorValue can not be fround from the resource.
-  After searching in the code base: 
-  - The purple has no usage that need to be declear. It can be remove.
-  - The red has only one usage that can use semantic css color instead. 
+  /*
+  Call the useColorValue hook with the default colors; here the color is hardcoded.
+  The hook useColorValue cannot be found in the resource.
+  After searching in the codebase:
+  - The purple has no usage that needs to be declared. It can be removed.
+  - The red has only one usage that can use semantic CSS color instead.
   */
   const purple = useColorValue("purple");
   const red = useColorValue("red");
 
-  /* Basic button styles using tailwind utility class. 
-  As a static variable, we don't need it re-initiate during the component re-render. 
-  Move it out of the component can make it only declear once. 
-  So I change it as a funciton that can accept the parameters.
-  And put it into a util file instead.
+  /* Basic button styles using Tailwind utility classes.
+  As a static variable, we don't need it to re-initialize during component re-render.
+  Moving it out of the component makes it only declare once.
+  So I changed it to a function that can accept parameters
+  and put it into a util file instead.
   */
   const baseStyling = [
     "inline-flex",
@@ -103,7 +103,7 @@ const Button = React.forwardRef((props, ref) => {
   ];
 
   /* Button size selector
-  Same reason above, change to a function and move it into the util file.
+  Same reason as above, changed to a function and moved it into the util file.
   */
   const sizeMap = {
     large: ["h-12 py-1", { "px-4": defaultPadding && layout !== "text" }],
@@ -120,8 +120,8 @@ const Button = React.forwardRef((props, ref) => {
 
   /*
   Text size mapping for different button sizes
-  Same reason above, but since this is a simple object without parameter/variables,
-  move it into the util file.
+  Same reason as above, but since this is a simple object without parameters/variables,
+  moved it into the util file.
   */
   const textSizeMap = {
     large: "",
@@ -134,7 +134,7 @@ const Button = React.forwardRef((props, ref) => {
 
   /*
   Width mapping for different button widths
-  Same reason above, change to a function and move it into the util file.
+  Same reason as above, changed to a function and moved it into the util file.
   */
   const widthMap = {
     default: "",
@@ -150,15 +150,15 @@ const Button = React.forwardRef((props, ref) => {
 
   /*
   Combine all the class names for the button
-  Change the twClassNames function to classname. 
-  This class are using for two sub components:
+  Changed the twClassNames function to classNames.
+  These classes are used for two sub-components:
   1. button component that shows the basic button.
-  2. animationElements that handle the primary buton animation and loading animation.
-  Because there are two sub component need to be passed in, and the two components are nested.
-  Therefore, move it into the ButtonContext to avoid the "Prop Drilling".
-  Normally, the variable that included parameters, we may use React useMemo hooks to handle the updata
-  and cashe to avoid unnesacery re-culculate. But this variable has long dependency 
-  and most of them are props from parent component, It should re-generate when the component re-render.
+  2. animationElements that handles the primary button animation and loading animation.
+  Because there are two sub-components that need to be passed in, and the two components are nested,
+  therefore, move it into the ButtonContext to avoid "Prop Drilling".
+  Normally, for variables that include parameters, we may use React useMemo hooks to handle the update
+  and cache to avoid unnecessary re-calculation. But this variable has long dependencies
+  and most of them are props from the parent component, so it should re-generate when the component re-renders.
   So I didn't put it into the useMemo hook.
   */
   const buttonClasses = twClassNames(
@@ -173,19 +173,19 @@ const Button = React.forwardRef((props, ref) => {
 
   /*
   Determine the text size class based on the size prop
-  This variable are in the buttonClasses variable all the time as one part of the button class.
-  So just simple migrate it into the buttonClasses to easy to manage.
+  This variable is in the buttonClasses variable all the time as one part of the button class.
+  So simply migrate it into the buttonClasses for easier management.
   */
   const buttonTextSize = textSizeMap[size];
 
-  /* 
-  Bring the ButtonWithMagnet DOM and be operated by gsap to make the button can slitly move following the mouse.
+  /*
+  Reference to the ButtonWithMagnet DOM, operated by GSAP to make the button slightly move following the mouse.
   */
   const magnetRef = useRef();
 
-  /* 
+  /*
   Function to handle the magnet effect on mouse move.
-  This function can be encapsulate into a customer hooks.
+  This function can be encapsulated into a custom hook.
   */
   const moveMagnet = (event) => {
     if (!(layout === "primary" && !withoutButtonTag)) return;
@@ -205,9 +205,9 @@ const Button = React.forwardRef((props, ref) => {
     });
   };
 
-  /* 
+  /*
   Function to reset the magnet effect on mouse out.
-  Same as above, encapsulate into the customer hooks.
+  Same as above, encapsulate into a custom hook.
   */
   const moveOut = (event) => {
     if (!(layout === "primary" && !withoutButtonTag)) return;
@@ -226,36 +226,36 @@ const Button = React.forwardRef((props, ref) => {
   };
 
   /*
-  Stop the animation when the component has been unmounted. 
-  This hook only used by  ButtonWithMagnet component,
-  it can be move into the component so when the component has not mount then it will not be invoke.
+  Stop the animation when the component has been unmounted.
+  This hook is only used by the ButtonWithMagnet component;
+  it can be moved into the component so when the component has not mounted, it will not be invoked.
   */
   const { contextSafe } = useGSAP();
 
   /*
-  Using the state to handle the shine effect on the button.
-  The initail variable that may use tailwind css instead of the style.
-  That will easy to manage the changes.
+  Using state to handle the shine effect on the button.
+  The initial variable could use Tailwind CSS instead of inline styles,
+  which would make it easier to manage changes.
   */
   const [spanTransformShine, setSpanTransformShine] = useState({
     translate: "-100% 0%",
   });
 
   /*
-  Bring the button DOM to let the style and gsap control.
-  Also, it eject out of component for further useage.
+  Reference to the button DOM for style and GSAP control.
+  Also, it is exposed outside the component for further usage.
   */
   const buttonRef = useRef();
 
   /*
-  Eject the button DOM out of the component.
+  Expose the button DOM outside the component.
   */
   useImperativeHandle(ref, () => buttonRef.current);
 
   /*
-  Encapsulate this component into customer hooks.
-  After encapsulate, the hook will automaticlly to update the layout and DOM change, 
-  So that is not nesacery to use the useCallback hook.
+  Encapsulate this into a custom hook.
+  After encapsulation, the hook will automatically update on layout and DOM changes,
+  so it is not necessary to use the useCallback hook.
   */
   const enterAndOut = useCallback(
     (e) => {
@@ -266,7 +266,7 @@ const Button = React.forwardRef((props, ref) => {
       // Handle mouseenter event
       if (e.type === "mouseenter") {
         if (layout === "primary") {
-          /* Chanage the style to tailwindcss utility class */
+          /* Change the style to Tailwind CSS utility class */
           setSpanTransformShine({
             translate: "100% 0%",
           });
@@ -285,7 +285,7 @@ const Button = React.forwardRef((props, ref) => {
           !buttonRef.current?.contains(e.relatedTarget)
         ) {
           if (layout === "primary") {
-            /* Chanage the style to tailwindcss utility class */
+            /* Change the style to Tailwind CSS utility class */
             setSpanTransformShine({
               translate: "-100% 0%",
             });
@@ -298,26 +298,26 @@ const Button = React.forwardRef((props, ref) => {
   );
 
   /*
-  Bring the animationElements DOM to let the style and gsap control.
+  Reference to the animationElements DOM for style and GSAP control.
   */
   const fillUpAnimRef = useRef();
 
   /*
-  The component that display the loading animation that step by step fillup the button.
-  This is a jsx component, it should not declear here, and lead it to re-render each of times
-  the button re-render. 
-  Also useMemo is using for monitoring the change in the variabe culculation result, to avoid unnesacery
-  re-calculate. That is not using for the jsx component. 
-  Here should use React.memo to caching the component and void re-render.
-  But unless some of specitial situation that need to memo the component, in most situation, that we can let the 
-  React manage the component re-render instead of the React.memo.
+  The component that displays the loading animation that step by step fills up the button.
+  This is a JSX component; it should not be declared here, as it leads to re-rendering each time
+  the button re-renders.
+  Also, useMemo is used for monitoring changes in variable calculation results to avoid unnecessary
+  re-calculation. It is not intended for JSX components.
+  Here we should use React.memo to cache the component and avoid re-render.
+  But unless there is some special situation that needs to memo the component, in most situations we can let
+  React manage the component re-render instead of using React.memo.
   */
   const animationElements = useMemo(
     () => (
-      /* 
-      The follwing styles could be extract as mutiple variables and useMemo to tracking the variables change.
-      And for the inline-styles, That is not a mistake, but for consistence, we may change it to tailwindcss utility class.
-      Except the 'fromLoadingPercent' that should use the inline-style because the tailwindcss can not support JIT compiling.
+      /*
+      The following styles could be extracted as multiple variables and use useMemo to track the variable changes.
+      As for the inline styles, that is not a mistake, but for consistency, we may change them to Tailwind CSS utility classes.
+      Except for 'fromLoadingPercent', which should use inline styles because Tailwind CSS cannot support JIT compiling for dynamic values.
       */
       <>
         {layout === "primary" && (
@@ -373,7 +373,7 @@ const Button = React.forwardRef((props, ref) => {
         )}
       </>
     ),
-    /* There are not usage for the purple, should don't be here. */
+    /* There is no usage for purple; it should not be here. */
     [layout, spanTransformShine, loadingAnimation, purple]
   );
 
@@ -386,9 +386,9 @@ const Button = React.forwardRef((props, ref) => {
   If there are errors, it animates the fill-up element to shrink back to 0% width and changes its color to red.
   */
   /*
-  The timeline ref to let the gsap manage the animation timeline. 
-  But since the timeline has side effect posibility, we should init it the useEffec,
-  alternativly, we can let the useGSAP hook to manage it, the hook handled and optimized the side effect.
+  The timeline ref to let GSAP manage the animation timeline.
+  But since the timeline has potential side effects, we should initialize it in useEffect;
+  alternatively, we can let the useGSAP hook manage it, as the hook handles and optimizes side effects.
   */
   const timelineRef = useRef(gsap.timeline({ paused: true }));
 
@@ -396,19 +396,19 @@ const Button = React.forwardRef((props, ref) => {
     timelineRef.current.restart();
   }, [loadingPercent]);
 
-  /* 
-  The hook from @gsap/react that handle the animation.
+  /*
+  The hook from @gsap/react that handles the animation.
   */
   useGSAP(() => {
     /*
-    The follwoing lines are nest if statement that is a traditional bad small in the code.
-    Should split them into mutiple statement. fx. if (true) return;
+    The following lines are nested if statements, which is a traditional code smell.
+    Should split them into multiple statements, e.g., if (true) return;
     */
     if (buttonRef.current && fillUpAnimRef.current) {
       if (loadingAnimation && typeof loadingPercent === "number") {
         const timeline = timelineRef.current;
         timeline.clear();
-        /* here also can split the statement to if (hasErrors) { do this and return;} */
+        /* Here we could also split the statement to: if (hasErrors) { do this and return; } */
         if (!hasErrors) {
           timeline
             .to(fillUpAnimRef.current, {
@@ -455,8 +455,8 @@ const Button = React.forwardRef((props, ref) => {
 
   /*
   The normal button has the shine effect when layout is primary.
-  Same as the animation element, this component should be move out of the parent component.
-   */
+  Same as the animation element, this component should be moved out of the parent component.
+  */
   const button = (
     <button
       ref={buttonRef}
@@ -477,9 +477,9 @@ const Button = React.forwardRef((props, ref) => {
   );
 
   /**
-   * This magnet button will has the magnet effect when hover, the button will follow the mouse cursor slighty.
-   * Only the layout is primary will have this effect.
-   * Should be move out of the component as a warper component.
+   * This magnet button will have the magnet effect on hover; the button will follow the mouse cursor slightly.
+   * Only the primary layout will have this effect.
+   * Should be moved out of the component as a wrapper component.
    */
   const buttonWithMagnet = (
     <span
@@ -496,11 +496,11 @@ const Button = React.forwardRef((props, ref) => {
   );
 
   /*
-  Since the Widget appeared in here and also warped the Button component.
-  And the condition only using for display the ButtonWithMagent warp 
-  (the button also included in the ButtonWithMagnet),
-  We can move the !withoutButtonTag condition into the ButtonWithMagnet 
-  to decide use the magnet effert or not. 
+  Since the Widget appears here and also wraps the Button component,
+  and the condition is only used to display the ButtonWithMagnet wrapper
+  (the button is also included in the ButtonWithMagnet),
+  we can move the !withoutButtonTag condition into the ButtonWithMagnet
+  to decide whether to use the magnet effect or not.
   */
   if (!withoutButtonTag) {
     return (
@@ -512,9 +512,9 @@ const Button = React.forwardRef((props, ref) => {
 
   return (
     <Widget FallbackComponent={ErrorViewTemplateSmall}>
-      {/* 
-      This span acturlly is the button component only has a small style different.
-      So it can be migrate into the button component and add the withoutButtonTag condition.
+      {/*
+      This span is actually the button component with only a small style difference.
+      So it can be migrated into the button component by adding the withoutButtonTag condition.
       */}
       {/* Change the tag to button */}
       <span
