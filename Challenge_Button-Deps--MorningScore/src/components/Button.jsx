@@ -74,7 +74,7 @@ const Button = React.forwardRef((props, ref) => {
   const magnetRef = useRef();
   const buttonRef = useRef();
   const fillUpAnimRef = useRef();
-  const timelineRef = useRef(gsap.timeline({ paused: true }));
+  const timelineRef = useRef(null);
 
   const { moveMagnet, moveOut, enterAndOut } = useMouseActions(
     layout,
@@ -98,59 +98,71 @@ const Button = React.forwardRef((props, ref) => {
 
   const buttonTextSize = textSizeMap[size];
 
-  useGSAP(() => {
-    if (buttonRef.current && fillUpAnimRef.current) {
-      if (loadingAnimation && typeof loadingPercent === "number") {
-        const timeline = timelineRef.current;
-        timeline.clear();
-        if (!hasErrors) {
-          timeline
-            .to(fillUpAnimRef.current, {
-              width: `${fromLoadingPercent}%`,
-              duration: 0,
-            })
-            .to(fillUpAnimRef.current, {
-              width: `${loadingPercent}%`,
-              duration: 1,
-              ease: "circ.out",
-              onStart: () => {
-                loadingAnimatingCallback?.(true);
-              },
-            })
-            .to(buttonRef.current, {
-              scale: loadingPercent === 100 ? 1.1 : 1,
-              duration: 0.5,
-              delay: -0.5,
-              ease: "power4.inOut",
-              repeat: 1,
-              yoyo: true,
-              yoyoEase: "power4.inOut",
-            })
-            .to(buttonRef.current, {
-              duration: 0.5,
-              onComplete: () => {
-                loadingAnimatingCallback?.(false);
-              },
-            });
-        } else {
-          timeline.to(fillUpAnimRef.current, {
-            backgroundColor: "red", // change the red value to semantic css variable
-            width: "0%",
-            duration: 1,
-            ease: "circ.out",
-            onComplete: () => {
-              loadingAnimatingCallback?.(false);
-            },
-          });
-        }
+  useGSAP(
+    () => {
+      // if the buttonRef and fillUpAnimRef is not exist, we don't need to create the animation instance.
+      if (!(buttonRef.current && fillUpAnimRef.current)) return;
+      if (!(loadingAnimation && typeof loadingPercent === "number")) return;
+      // initial gsap timelin, because the side effect, the initial should be in useEffect, the useGSAP already optimazed it.
+      timelineRef.current = gsap.timeline({ paused: true });
+
+      const timeline = timelineRef.current;
+      timeline.clear();
+
+      if (hasErrors) {
+        // this animation has an issue, when there are missing the return, the red backgroud will display, otherwise it is not.
+        // todo: need to fix the animation red background has not effert.
+        timeline.to(fillUpAnimRef.current, {
+          backgroundColor: "red", // change the red value to semantic css variable
+          width: "0%",
+          duration: 1,
+          ease: "circ.out",
+          onComplete: () => {
+            loadingAnimatingCallback?.(false);
+          },
+        });
+        return;
       }
+
+      timeline
+        .to(fillUpAnimRef.current, {
+          width: `${fromLoadingPercent}%`,
+          duration: 0,
+        })
+        .to(fillUpAnimRef.current, {
+          width: `${loadingPercent}%`,
+          duration: 1,
+          ease: "circ.out",
+          onStart: () => {
+            loadingAnimatingCallback?.(true);
+          },
+        })
+        .to(buttonRef.current, {
+          scale: loadingPercent === 100 ? 1.1 : 1,
+          duration: 0.5,
+          delay: -0.5,
+          ease: "power4.inOut",
+          repeat: 1,
+          yoyo: true,
+          yoyoEase: "power4.inOut",
+        })
+        .to(buttonRef.current, {
+          duration: 0.5,
+          onComplete: () => {
+            loadingAnimatingCallback?.(false);
+          },
+        });
+    },
+    {
+      dependencies: [loadingAnimation, loadingPercent, hasErrors],
+      scope: [fillUpAnimRef, buttonRef], // add the scop will let gsap automotically kill the animation process when the component unmounted.
     }
-  }, [loadingAnimation, loadingPercent, hasErrors]);
+  );
 
   useImperativeHandle(ref, () => buttonRef.current);
 
   useEffect(() => {
-    timelineRef.current.restart();
+    timelineRef.current?.restart();
   }, [loadingPercent]);
 
   return (
@@ -184,7 +196,7 @@ const Button = React.forwardRef((props, ref) => {
               buttonClasses={buttonClasses}
               buttonTextSize={buttonTextSize}
               ref={fillUpAnimRef}
-            />
+            ></AnimationElements>
             {children}
           </BaseButton>
         </ButtonWithMagnet>
@@ -300,7 +312,7 @@ const AnimationElements = React.forwardRef((props, ref) => {
           <span
             className={twClassNames(
               buttonClasses,
-              "bg-purple text-white",
+              "bg-purple-700/30 text-white w-full", // add w-full success make the bar full fill.
               buttonTextSize
             )}
           >
