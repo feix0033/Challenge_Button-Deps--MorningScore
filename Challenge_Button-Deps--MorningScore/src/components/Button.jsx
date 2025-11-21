@@ -2,7 +2,6 @@
 import React, {
   useEffect,
   useImperativeHandle,
-  useMemo,
   useRef,
   useState,
   createContext,
@@ -84,6 +83,7 @@ const Button = React.forwardRef((props, ref) => {
     withoutButtonTag,
     setSpanTransformShine
   );
+
   const layoutMap = useButtonLayoutMap(textColor, hoverEnabled);
 
   const buttonClasses = twClassNames(
@@ -95,75 +95,8 @@ const Button = React.forwardRef((props, ref) => {
     className,
     "tracking-wide"
   );
-  const buttonTextSize = textSizeMap[size];
 
-  const AnimationElements = useMemo(
-    () => (
-      <>
-        {layout === "primary" && (
-          <span
-            className="absolute overflow-hidden bg-purple pointer-events-none"
-            style={{
-              zIndex: -1,
-              top: -1,
-              left: -1,
-              width: "calc(100% + 2px)",
-              height: "calc(100% + 2px)",
-              borderRadius: 3,
-            }}
-          >
-            <span
-              className="absolute block pointer-events-none"
-              style={{
-                ...spanTransformShine,
-                zIndex: 2,
-                transition: "all 650ms",
-                width: "200%",
-                height: "100%",
-                backgroundSize: "25%",
-                background:
-                  "linear-gradient(120deg, rgba(86, 58, 201, 1), rgba(187, 176, 233, 1), rgba(86, 58, 201, 1))",
-              }}
-            />
-          </span>
-        )}
-        {loadingAnimation && (
-          <span
-            ref={fillUpAnimRef}
-            className="absolute top-0 left-0 w-0 overflow-hidden pointer-events-none"
-            style={{
-              zIndex: 1,
-              width: `${fromLoadingPercent}%`,
-              marginTop: -1,
-              height: "calc(100% + 1px)",
-              left: -1,
-              color: "white",
-            }}
-          >
-            <span
-              className={twClassNames(
-                buttonClasses,
-                "bg-purple text-white",
-                buttonTextSize
-              )}
-            >
-              {children}
-            </span>
-          </span>
-        )}
-      </>
-      // remove purple which is no usage.
-    ),
-    [
-      layout,
-      spanTransformShine,
-      loadingAnimation,
-      fromLoadingPercent,
-      buttonClasses,
-      buttonTextSize,
-      children,
-    ]
-  );
+  const buttonTextSize = textSizeMap[size];
 
   useGSAP(() => {
     if (buttonRef.current && fillUpAnimRef.current) {
@@ -221,7 +154,16 @@ const Button = React.forwardRef((props, ref) => {
   }, [loadingPercent]);
 
   return (
-    <ButtonContext.Provider value={{ layout, withoutButtonTag }}>
+    <ButtonContext.Provider
+      value={{
+        layout,
+        withoutButtonTag,
+        spanTransformShine,
+        loadingAnimation,
+        fromLoadingPercent,
+        fillUpAnimRef,
+      }}
+    >
       <Widget FallbackComponent={ErrorViewTemplateSmall}>
         <ButtonWithMagnet
           ref={magnetRef}
@@ -234,11 +176,15 @@ const Button = React.forwardRef((props, ref) => {
             buttonClasses={buttonClasses}
             buttonTextSize={buttonTextSize}
             isLoading={isLoading}
-            animationElements={AnimationElements}
             withoutButtonTag={withoutButtonTag}
             enterAndOut={enterAndOut}
             forwardProps={forwardProps}
           >
+            <AnimationElements
+              buttonClasses={buttonClasses}
+              buttonTextSize={buttonTextSize}
+              ref={fillUpAnimRef}
+            />
             {children}
           </BaseButton>
         </ButtonWithMagnet>
@@ -254,7 +200,6 @@ const BaseButton = React.forwardRef((props, ref) => {
     buttonClasses,
     buttonTextSize,
     isLoading,
-    animationElements,
     children,
     enterAndOut,
     forwardProps,
@@ -275,7 +220,6 @@ const BaseButton = React.forwardRef((props, ref) => {
       onMouseEnter={enterAndOut}
       onMouseOut={enterAndOut}
     >
-      {animationElements}
       {children}
     </button>
   );
@@ -302,6 +246,70 @@ const ButtonWithMagnet = React.forwardRef((props, ref) => {
     </span>
   ) : (
     children
+  );
+});
+
+const AnimationElements = React.forwardRef((props, ref) => {
+  const { layout, spanTransformShine, loadingAnimation, fromLoadingPercent } =
+    useContext(ButtonContext);
+
+  const { buttonClasses, buttonTextSize, children } = props;
+
+  return (
+    <>
+      {layout === "primary" && (
+        <span
+          className="absolute overflow-hidden bg-purple pointer-events-none"
+          style={{
+            zIndex: -1,
+            top: -1,
+            left: -1,
+            width: "calc(100% + 2px)",
+            height: "calc(100% + 2px)",
+            borderRadius: 3,
+          }}
+        >
+          <span
+            className="absolute block pointer-events-none"
+            style={{
+              ...spanTransformShine,
+              zIndex: 2,
+              transition: "all 650ms",
+              width: "200%",
+              height: "100%",
+              backgroundSize: "25%",
+              background:
+                "linear-gradient(120deg, rgba(86, 58, 201, 1), rgba(187, 176, 233, 1), rgba(86, 58, 201, 1))",
+            }}
+          />
+        </span>
+      )}
+      {loadingAnimation && (
+        <span
+          ref={ref}
+          className="absolute top-0 left-0 w-0 overflow-hidden pointer-events-none"
+          style={{
+            zIndex: 1,
+            width: `${fromLoadingPercent}%`,
+            marginTop: -1,
+            height: "calc(100% + 1px)",
+            left: -1,
+            color: "white",
+          }}
+        >
+          <span
+            className={twClassNames(
+              buttonClasses,
+              "bg-purple text-white",
+              buttonTextSize
+            )}
+          >
+            {children}
+          </span>
+        </span>
+      )}
+    </>
+    // remove purple which is no usage.
   );
 });
 
