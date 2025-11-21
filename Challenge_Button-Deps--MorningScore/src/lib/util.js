@@ -1,6 +1,7 @@
 /* twClassNames
 This utility funciton is not included in the source code. And it not inlcuded in the challenage.
 So, auto generates by Github Copilot.
+Since the classNames util also be used in the source code and seems the two util doing the same thing. Use classNames instead of this.
  */
 export const twClassNames = (...args) => {
   let className = "";

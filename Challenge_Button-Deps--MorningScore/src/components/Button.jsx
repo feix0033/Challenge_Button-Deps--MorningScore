@@ -28,7 +28,6 @@ that is not necessarily use a React custom hook since that return a constant val
 // import useColorValue from './hooks/use-color-value';
 
 import {
-  twClassNames,
   textSizeMap,
   widthMap,
   sizeMap,
@@ -86,17 +85,16 @@ const Button = React.forwardRef((props, ref) => {
 
   const layoutMap = useButtonLayoutMap(textColor, hoverEnabled);
 
-  const buttonClasses = twClassNames(
+  const buttonClasses = classNames(
     baseStyling(center, fontWeight, defaultOutline, noTransition, textNoWrap),
     sizeMap(defaultPadding, layout, textNoWrap)[size],
     isLoading ? "cursor-wait border border-purple" : layoutMap[layout][active],
     widthMap(size)[width],
     { [`text-${textColor}`]: textColor },
     className,
-    "tracking-wide"
+    "tracking-wide",
+    textSizeMap[size] // the text size map always exist with the button classes, migrate it into the button classes.
   );
-
-  const buttonTextSize = textSizeMap[size];
 
   useGSAP(
     () => {
@@ -174,6 +172,7 @@ const Button = React.forwardRef((props, ref) => {
         loadingAnimation,
         fromLoadingPercent,
         fillUpAnimRef,
+        buttonClasses,
       }}
     >
       <Widget FallbackComponent={ErrorViewTemplateSmall}>
@@ -185,18 +184,12 @@ const Button = React.forwardRef((props, ref) => {
         >
           <BaseButton
             ref={buttonRef}
-            buttonClasses={buttonClasses}
-            buttonTextSize={buttonTextSize}
             isLoading={isLoading}
             withoutButtonTag={withoutButtonTag}
             enterAndOut={enterAndOut}
             forwardProps={forwardProps}
           >
-            <AnimationElements
-              buttonClasses={buttonClasses}
-              buttonTextSize={buttonTextSize}
-              ref={fillUpAnimRef}
-            ></AnimationElements>
+            <AnimationElements ref={fillUpAnimRef} />
             {children}
           </BaseButton>
         </ButtonWithMagnet>
@@ -206,16 +199,11 @@ const Button = React.forwardRef((props, ref) => {
 });
 
 const BaseButton = React.forwardRef((props, ref) => {
-  const { withoutButtonTag } = useContext(ButtonContext);
+  const { isLoading, children, enterAndOut, forwardProps } = props;
 
-  const {
-    buttonClasses,
-    buttonTextSize,
-    isLoading,
-    children,
-    enterAndOut,
-    forwardProps,
-  } = props;
+  const { withoutButtonTag, buttonClasses } =
+    useContext(ButtonContext);
+
   return (
     <button
       ref={ref}
@@ -226,7 +214,6 @@ const BaseButton = React.forwardRef((props, ref) => {
           : isLoading
           ? "bg-white text-purple hover:bg-white hover:text-purple active:bg-white active:text-purple"
           : "",
-        buttonTextSize
       )}
       {...forwardProps}
       onMouseEnter={enterAndOut}
@@ -246,7 +233,7 @@ const ButtonWithMagnet = React.forwardRef((props, ref) => {
   // display the magnet button when the layout is primary and withoutButtonTag is false
   return layout === "primary" && !withoutButtonTag ? (
     <span
-      className={twClassNames(
+      className={classNames(
         containerClassName,
         "-m-4 p-4 rounded-full inline-flex box-content"
       )}
@@ -262,10 +249,15 @@ const ButtonWithMagnet = React.forwardRef((props, ref) => {
 });
 
 const AnimationElements = React.forwardRef((props, ref) => {
-  const { layout, spanTransformShine, loadingAnimation, fromLoadingPercent } =
-    useContext(ButtonContext);
+  const {
+    layout,
+    spanTransformShine,
+    loadingAnimation,
+    fromLoadingPercent,
+    buttonClasses,
+  } = useContext(ButtonContext);
 
-  const { buttonClasses, buttonTextSize, children } = props;
+  const { children } = props;
 
   return (
     <>
@@ -310,10 +302,9 @@ const AnimationElements = React.forwardRef((props, ref) => {
           }}
         >
           <span
-            className={twClassNames(
+            className={classNames(
               buttonClasses,
               "bg-purple-700/30 text-white w-full", // add w-full success make the bar full fill.
-              buttonTextSize
             )}
           >
             {children}
