@@ -48,9 +48,7 @@ export const useMouseActions = (
     // Handle mouseenter event
     if (e.type === "mouseenter") {
       if (layout === "primary") {
-        setSpanTransformShine({
-          translate: "100% 0%",
-        });
+        setSpanTransformShine("translate-x-full");
       }
     }
 
@@ -63,9 +61,7 @@ export const useMouseActions = (
       // Check if the mouse is leaving the button and not entering a child element
       if (buttonRef.current && !buttonRef.current?.contains(e.relatedTarget)) {
         if (layout === "primary") {
-          setSpanTransformShine({
-            translate: "-100% 0%",
-          });
+          setSpanTransformShine("-translate-x-full");
         }
       }
     }
