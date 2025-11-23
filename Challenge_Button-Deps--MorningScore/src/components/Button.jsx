@@ -9,6 +9,7 @@ import { useMouseActions } from "../hooks/use-mouse-actions.js";
 
 import { textSizeMap, widthMap, sizeMap, baseStyling } from "../lib/util";
 import { useMagnetEffect } from "../hooks/use-magnet-effect.js";
+import { usePrimaryShineEffect } from "../hooks/use-primary-shine-effect.js";
 
 const Button = (props) => {
   const {
@@ -56,7 +57,7 @@ const Button = (props) => {
   const buttonRef = useRef();
   const fillUpAnimRef = useRef();
 
-  const { spanTransformShine, moveMagnet, moveOut, enterAndOut } = useMouseActions(
+  useMouseActions(
     layout,
     buttonRef,
     loadingPercent,
@@ -67,14 +68,11 @@ const Button = (props) => {
     fromLoadingPercent
   );
 
+  const { spanTransformShine, enterAndOut } = usePrimaryShineEffect(buttonRef);
+
   /* The actual rendering component */
   return (
-    <MagnetWrapper
-      containerClassName={containerClassName}
-      moveMagnet={moveMagnet}
-      moveOut={moveOut}
-      enabled={layout === "primary" && !withoutButtonTag}
-    >
+    <MagnetWrapper containerClassName={containerClassName} enabled={layout === "primary" && !withoutButtonTag}>
       <button
         ref={buttonRef}
         {...forwardProps}
@@ -95,10 +93,10 @@ const Button = (props) => {
 };
 
 const MagnetWrapper = (props) => {
+  const { containerClassName, children, enabled } = props;
+
   const magnetRef = useRef();
   const { contextSafe } = useGSAP();
-
-  const { containerClassName, children, enabled } = props;
   const { moveMagnet, moveOut } = useMagnetEffect(magnetRef);
 
   return enabled ? (

@@ -1,5 +1,5 @@
 import gsap from "gsap";
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { useGSAP } from "@gsap/react";
 
 export const useMouseActions = (
@@ -17,35 +17,6 @@ export const useMouseActions = (
   gsap.registerPlugin(useGSAP);
 
   const timelineRef = useRef(null);
-
-  const [spanTransformShine, setSpanTransformShine] = useState("-translate-x-full");
-
-  const enterAndOut = (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (!buttonRef.current) return;
-
-    // Handle mouseenter event
-    if (e.type === "mouseenter") {
-      if (layout === "primary") {
-        setSpanTransformShine("translate-x-full");
-      }
-    }
-
-    // mouseout semantics: https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/relatedTarget
-    // the element that triggered the event, entered to, exited from
-    // console.log(e.currentTarget, e.relatedTarget, e.target);
-
-    // Handle mouseleave event
-    if (e.type === "mouseout") {
-      // Check if the mouse is leaving the button and not entering a child element
-      if (buttonRef.current && !buttonRef.current?.contains(e.relatedTarget)) {
-        if (layout === "primary") {
-          setSpanTransformShine("-translate-x-full");
-        }
-      }
-    }
-  };
 
   useGSAP(
     () => {
@@ -117,6 +88,4 @@ export const useMouseActions = (
   useEffect(() => {
     timelineRef.current?.restart();
   }, [loadingPercent]);
-
-  return { spanTransformShine, enterAndOut };
 };
