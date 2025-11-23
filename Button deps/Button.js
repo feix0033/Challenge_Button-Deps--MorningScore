@@ -17,23 +17,23 @@ import twClassNames from 'support/utilities/tailwind/twClassNames';
 
 const Button = React.forwardRef((props, ref) => {
   const {
-    layout = 'primary',
-    width = 'default',
-    size = 'default',
-    hoverEnabled = true,
-    className,
-    containerClassName,
+    layout = 'primary', // 定义按钮布局, 或者说 variant
+    width = 'default', // 定义按钮宽度, 可以合并到 variant 里面
+    size = 'default', // 定义按钮大小, 可以合并到 variant 里面
+    hoverEnabled = true, // 这个属性定义的是是否能够根据鼠标滑过来显示一些东西.
+    className, 
+    containerClassName, 
     children,
-    active = false,
-    highlight = false, /// Not currently supported here
-    withoutButtonTag = false,
-    textColor,
-    noTransition = false,
-    fontWeight = 'medium',
-    center = true,
-    defaultPadding = true,
-    defaultOutline = true,
-    loadingAnimation = false,
+    active = false, // 是否处于活动转台
+    highlight = false, /// Not currently supported here // 根本就没有用, 删掉
+    withoutButtonTag = false, // 当有这个属性的时候, 显示 animationElement, 没有的时候, 不显示.
+    textColor, // 文字颜色
+    noTransition = false, // 有没有动画, 
+    fontWeight = 'medium', // 字体大小
+    center = true, // 是否居中
+    defaultPadding = true, //是否使用默认 边距
+    defaultOutline = true, // 是否使用默认 outline 样式?
+    loadingAnimation = false,  
     isLoading = false,
     loadingPercent = 0,
     fromLoadingPercent = 0,

@@ -298,6 +298,8 @@ export default function useButtonLayoutMap(textColor, hoverEnabled) {
     };
 
     // Utility function to remove hover classes from a CSS string.
+    // 这个方法是用来移除 hover classes 的, 这个是个方法的抽象.  实际上当这个钩子渲染的时候, 它自己就根据 hoverEnabled 去移除 hover 属性了.
+    // 这个其实直接让 variant 或者 tailwindcss 来做就可以了把. 条件渲染搞一下啊.
     const removeHoverClasses = (css) => css
       .split(' ')
       .filter((token) => !token.startsWith('hover:'))
