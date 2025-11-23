@@ -1,12 +1,25 @@
 import gsap from "gsap";
+import { useState, useRef, useImperativeHandle, useEffect } from "react";
+import { useGSAP } from "@gsap/react";
 
 export const useMouseActions = (
+  ref,
   layout,
   buttonRef,
   magnetRef,
+  loadingPercent,
+  hasErrors,
+  loadingAnimatingCallback,
   withoutButtonTag,
-  setSpanTransformShine
+  fillUpAnimRef,
+  loadingAnimation,
+  fromLoadingPercent
 ) => {
+  const timelineRef = useRef(null);
+
+  const [spanTransformShine, setSpanTransformShine] =
+    useState("-translate-x-full");
+
   const moveMagnet = (event) => {
     if (!(layout === "primary" && !withoutButtonTag)) return;
     if (!magnetRef.current) return;
@@ -67,5 +80,73 @@ export const useMouseActions = (
     }
   };
 
-  return { moveMagnet, moveOut, enterAndOut };
+  useGSAP(
+    () => {
+      // if the buttonRef and fillUpAnimRef is not exist, we don't need to create the animation instance.
+      if (!(buttonRef.current && fillUpAnimRef.current)) return;
+      if (!(loadingAnimation && typeof loadingPercent === "number")) return;
+
+      // initial gsap timelin, because the side effect, the initial should be in useEffect, the useGSAP already optimazed it.
+      timelineRef.current = gsap.timeline({ paused: true });
+
+      const timeline = timelineRef.current;
+      timeline.clear();
+
+      if (hasErrors) {
+        // this animation has an issue, when there are missing the return, the red backgroud will display, otherwise it is not.
+        // todo: need to fix the animation red background has not effert.
+        timeline.to(fillUpAnimRef.current, {
+          backgroundColor: "red", // change the red value to semantic css variable
+          width: "0%",
+          duration: 1,
+          ease: "circ.out",
+          onComplete: () => {
+            loadingAnimatingCallback?.(false);
+          },
+        });
+        return;
+      }
+
+      timeline
+        .to(fillUpAnimRef.current, {
+          width: `${fromLoadingPercent}%`,
+          duration: 0,
+        })
+        .to(fillUpAnimRef.current, {
+          width: `${loadingPercent}%`,
+          duration: 1,
+          ease: "circ.out",
+          onStart: () => {
+            loadingAnimatingCallback?.(true);
+          },
+        })
+        .to(buttonRef.current, {
+          scale: loadingPercent === 100 ? 1.1 : 1,
+          duration: 0.5,
+          delay: -0.5,
+          ease: "power4.inOut",
+          repeat: 1,
+          yoyo: true,
+          yoyoEase: "power4.inOut",
+        })
+        .to(buttonRef.current, {
+          duration: 0.5,
+          onComplete: () => {
+            loadingAnimatingCallback?.(false);
+          },
+        });
+    },
+    {
+      dependencies: [loadingAnimation, loadingPercent, hasErrors],
+      scope: [fillUpAnimRef, buttonRef], // add the scop will let gsap automotically kill the animation process when the component unmounted.
+    }
+  );
+
+  useImperativeHandle(ref, () => buttonRef.current);
+
+  useEffect(() => {
+    timelineRef.current?.restart();
+  }, [loadingPercent]);
+
+  return { spanTransformShine, moveMagnet, moveOut, enterAndOut };
 };
