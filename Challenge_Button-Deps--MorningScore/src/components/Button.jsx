@@ -1,5 +1,5 @@
 // The dependancy imports form node_modules
-import React, { useRef, createContext, useContext } from "react";
+import React, { useRef } from "react";
 import PropTypes from "prop-types";
 import classNames from "classnames";
 import { useGSAP } from "@gsap/react";
@@ -8,8 +8,6 @@ import useButtonLayoutMap from "../hooks/use-button-layout-map.js";
 import { useMouseActions } from "../hooks/use-mouse-actions.js";
 
 import { textSizeMap, widthMap, sizeMap, baseStyling } from "../lib/util";
-
-const ButtonContext = createContext();
 
 const Button = React.forwardRef((props, ref) => {
   const {
@@ -39,6 +37,21 @@ const Button = React.forwardRef((props, ref) => {
     ...forwardProps
   } = props;
 
+  /* This is the style part that I should put them together */
+  const layoutMap = useButtonLayoutMap(textColor, hoverEnabled);
+
+  const buttonClasses = classNames(
+    baseStyling(center, fontWeight, defaultOutline, noTransition, textNoWrap),
+    sizeMap(defaultPadding, layout, textNoWrap)[size],
+    widthMap(size)[width],
+    textSizeMap[size], // the text size map always exist with the button classes, migrate it into the button classes.
+    isLoading ? "cursor-wait border border-purple" : layoutMap[layout][active],
+    { [`text-${textColor}`]: textColor },
+    className,
+    "tracking-wide"
+  );
+
+  /* Here is the component behaviro */
   const magnetRef = useRef();
   const buttonRef = useRef();
   const fillUpAnimRef = useRef();
@@ -57,56 +70,37 @@ const Button = React.forwardRef((props, ref) => {
     fromLoadingPercent
   );
 
-  const layoutMap = useButtonLayoutMap(textColor, hoverEnabled);
-
-  const buttonClasses = classNames(
-    baseStyling(center, fontWeight, defaultOutline, noTransition, textNoWrap),
-    sizeMap(defaultPadding, layout, textNoWrap)[size],
-    widthMap(size)[width],
-    textSizeMap[size], // the text size map always exist with the button classes, migrate it into the button classes.
-    isLoading ? "cursor-wait border border-purple" : layoutMap[layout][active],
-    { [`text-${textColor}`]: textColor },
-    className,
-    "tracking-wide"
-  );
-
-  const LOADING_STYLE = "bg-white text-purple hover:bg-white hover:text-purple active:bg-white active:text-purple";
-
+  /* The actual rendering component */
   return (
-    <ButtonContext.Provider
-      value={{
-        layout,
-        withoutButtonTag,
-        loadingAnimation,
-        fromLoadingPercent,
-        fillUpAnimRef,
-        buttonClasses,
-        spanTransformShine,
-      }}
+    <MagnetWrapper
+      ref={magnetRef}
+      containerClassName={containerClassName}
+      moveMagnet={moveMagnet}
+      moveOut={moveOut}
+      layout={layout}
+      withoutButtonTag={withoutButtonTag}
     >
-      <MagnetWrapper ref={magnetRef} containerClassName={containerClassName} moveMagnet={moveMagnet} moveOut={moveOut}>
-        <button
-          ref={buttonRef}
-          {...forwardProps}
-          className={classNames(buttonClasses, {
-            "inline-flex": withoutButtonTag,
-            [LOADING_STYLE]: isLoading && !withoutButtonTag,
-          })}
-          onMouseEnter={enterAndOut}
-          onMouseOut={enterAndOut}
-        >
-          {layout === "primary" && <PrimaryShineEffect spanTransformShine={spanTransformShine} />}
-          {loadingAnimation && <LoadingEffect buttonClasses={buttonClasses} ref={fillUpAnimRef} />}
-          {children}
-        </button>
-      </MagnetWrapper>
-    </ButtonContext.Provider>
+      <button
+        ref={buttonRef}
+        {...forwardProps}
+        className={classNames(buttonClasses, {
+          "inline-flex": withoutButtonTag,
+          "bg-white text-purple hover:bg-white hover:text-purple active:bg-white active:text-purple":
+            isLoading && !withoutButtonTag,
+        })}
+        onMouseEnter={enterAndOut}
+        onMouseOut={enterAndOut}
+      >
+        {layout === "primary" && <PrimaryShineEffect spanTransformShine={spanTransformShine} />}
+        {loadingAnimation && <LoadingEffect buttonClasses={buttonClasses} ref={fillUpAnimRef} />}
+        {children}
+      </button>
+    </MagnetWrapper>
   );
 });
 
 const MagnetWrapper = React.forwardRef((props, ref) => {
-  const { containerClassName, moveMagnet, moveOut, children } = props;
-  const { layout, withoutButtonTag } = useContext(ButtonContext);
+  const { containerClassName, moveMagnet, moveOut, children, layout, withoutButtonTag } = props;
   const { contextSafe } = useGSAP();
 
   return layout === "primary" && !withoutButtonTag ? (
@@ -123,17 +117,17 @@ const MagnetWrapper = React.forwardRef((props, ref) => {
   );
 });
 
-const LoadingEffect = React.forwardRef((props, ref) => (
+const LoadingEffect = React.forwardRef(({ buttonClasses }, ref) => (
   <span
     ref={ref}
     className={"absolute top-0 left-0 w-0 overflow-hidden pointer-events-none z-1 -mt-px h-[calc(100%+1px)] text-white"}
   >
     {/* Below here, this element need to add a full width (w-full) that can show the loaiding bar correctly. */}
-    <span className={classNames(props.buttonClasses, "bg-purple-700/30 text-white w-full")} />
+    <span className={classNames(buttonClasses, "bg-purple-700/30 text-white w-full")} />
   </span>
 ));
 
-const PrimaryShineEffect = React.memo(({ spanTransformShine }) => (
+const PrimaryShineEffect = ({ spanTransformShine }) => (
   <span
     className={classNames(
       "absolute -top-px -left-px -z-1 overflow-hidden pointer-events-none rounded-[3px]",
@@ -148,7 +142,7 @@ const PrimaryShineEffect = React.memo(({ spanTransformShine }) => (
       )}
     />
   </span>
-));
+);
 
 Button.propTypes = {
   /**
