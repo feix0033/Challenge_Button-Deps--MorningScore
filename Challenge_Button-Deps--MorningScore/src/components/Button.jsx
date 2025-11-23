@@ -1,23 +1,11 @@
 // The dependancy imports form node_modules
-import React, { useRef, createContext, useContext, useMemo } from "react";
+import React, { useRef, createContext, useContext } from "react";
 import PropTypes from "prop-types";
 import classNames from "classnames";
 import { useGSAP } from "@gsap/react";
 
-// The hooks that contain in the offered source.
-// Update the paths as needed.
 import useButtonLayoutMap from "../hooks/use-button-layout-map.js";
 import { useMouseActions } from "../hooks/use-mouse-actions.js";
-
-/* THE HOOKS AND UTILITIES THAT DOES NOT CONTAIN IN THE OFFERED SOURCE
-The following hooks and utilities that does not contain in the offered source, 
-I created the simple implementations based on the usage. And update the paths as needed.
-*/
-/* 
-Based on the usage, this hook should return a color value string based on the input color name.
-that is not necessarily use a React custom hook since that return a constant value without using any of the React hook.
-*/
-// import useColorValue from './hooks/use-color-value';
 
 import { textSizeMap, widthMap, sizeMap, baseStyling } from "../lib/util";
 
@@ -55,20 +43,19 @@ const Button = React.forwardRef((props, ref) => {
   const buttonRef = useRef();
   const fillUpAnimRef = useRef();
 
-  const { spanTransformShine, moveMagnet, moveOut, enterAndOut } =
-    useMouseActions(
-      ref,
-      layout,
-      buttonRef,
-      magnetRef,
-      loadingPercent,
-      hasErrors,
-      loadingAnimatingCallback,
-      withoutButtonTag,
-      fillUpAnimRef,
-      loadingAnimation,
-      fromLoadingPercent
-    );
+  const { spanTransformShine, moveMagnet, moveOut, enterAndOut } = useMouseActions(
+    ref,
+    layout,
+    buttonRef,
+    magnetRef,
+    loadingPercent,
+    hasErrors,
+    loadingAnimatingCallback,
+    withoutButtonTag,
+    fillUpAnimRef,
+    loadingAnimation,
+    fromLoadingPercent
+  );
 
   const layoutMap = useButtonLayoutMap(textColor, hoverEnabled);
 
@@ -95,12 +82,7 @@ const Button = React.forwardRef((props, ref) => {
         spanTransformShine,
       }}
     >
-      <ButtonWithMagnet
-        ref={magnetRef}
-        containerClassName={containerClassName}
-        moveMagnet={moveMagnet}
-        moveOut={moveOut}
-      >
+      <MagnetWrapper ref={magnetRef} containerClassName={containerClassName} moveMagnet={moveMagnet} moveOut={moveOut}>
         <BaseButton
           ref={buttonRef}
           isLoading={isLoading}
@@ -108,10 +90,11 @@ const Button = React.forwardRef((props, ref) => {
           enterAndOut={enterAndOut}
           forwardProps={forwardProps}
         >
-          <AnimationElements ref={fillUpAnimRef} />
+          {layout === "primary" && <PrimaryShineEffect spanTransformShine={spanTransformShine} />}
+          {loadingAnimation && <LoadingEffect buttonClasses={buttonClasses} ref={fillUpAnimRef} />}
           {children}
         </BaseButton>
-      </ButtonWithMagnet>
+      </MagnetWrapper>
     </ButtonContext.Provider>
   );
 });
@@ -120,25 +103,19 @@ const BaseButton = React.forwardRef((props, ref) => {
   const { isLoading, children, enterAndOut, forwardProps } = props;
   const { withoutButtonTag, buttonClasses } = useContext(ButtonContext);
 
-  const baseButtonCn = useMemo(
-    () =>
-      classNames(
+  // We don't need to use React.memo to cache the component, because the mouse action will change all the time when the mouse enter and out.
+  return (
+    <button
+      ref={ref}
+      {...forwardProps}
+      className={classNames(
         buttonClasses,
         withoutButtonTag
           ? "inline-flex"
           : isLoading
           ? "bg-white text-purple hover:bg-white hover:text-purple active:bg-white active:text-purple"
           : ""
-      ),
-    [withoutButtonTag, isLoading, buttonClasses]
-  );
-
-  // We don't need to use React.memo to cache the component, because the mouse action will change all the time when the mouse enter and out.
-  return (
-    <button
-      ref={ref}
-      {...forwardProps}
-      className={baseButtonCn}
+      )}
       onMouseEnter={enterAndOut}
       onMouseOut={enterAndOut}
     >
@@ -147,28 +124,16 @@ const BaseButton = React.forwardRef((props, ref) => {
   );
 });
 
-const ButtonWithMagnet = React.forwardRef((props, ref) => {
+const MagnetWrapper = React.forwardRef((props, ref) => {
   const { containerClassName, moveMagnet, moveOut, children } = props;
   const { layout, withoutButtonTag } = useContext(ButtonContext);
   const { contextSafe } = useGSAP();
 
-  const buttonWithMagnet = useMemo(
-    () =>
-      classNames(
-        containerClassName,
-        "-m-4 p-4 rounded-full inline-flex box-content"
-      ),
-    [containerClassName]
-  );
-
-  // display the magnet button when the layout is primary and withoutButtonTag is false
-  const hasMagnetWarp = layout === "primary" && !withoutButtonTag;
-
   // We don't need to use React.memo to cache the component, because the mouse action will change all the time when the mouse enter and out.
-  return hasMagnetWarp ? (
+  return layout === "primary" && !withoutButtonTag ? (
     <span
       ref={ref}
-      className={buttonWithMagnet}
+      className={classNames(containerClassName, "-m-4 p-4 rounded-full inline-flex box-content")}
       onMouseMove={contextSafe(moveMagnet)}
       onMouseLeave={contextSafe(moveOut)}
     >
@@ -179,67 +144,32 @@ const ButtonWithMagnet = React.forwardRef((props, ref) => {
   );
 });
 
-const AnimationElements = React.forwardRef((props, ref) => {
-  const { children } = props;
+const LoadingEffect = React.forwardRef((props, ref) => (
+  <span
+    ref={ref}
+    className={"absolute top-0 left-0 w-0 overflow-hidden pointer-events-none z-1 -mt-px h-[calc(100%+1px)] text-white"}
+  >
+    {/* Below here, this element need to add a full width (w-full) that can show the loaiding bar correctly. */}
+    <span className={classNames(props.buttonClasses, "bg-purple-700/30 text-white w-full")} />
+  </span>
+));
 
-  const {
-    layout,
-    spanTransformShine,
-    loadingAnimation,
-    fromLoadingPercent,
-    buttonClasses,
-  } = useContext(ButtonContext);
-
-  const primaryAnimationContainerCn = classNames(
-    "absolute overflow-hidden bg-purple pointer-events-none",
-    "-z-[1] -top-[1px] -left-[1px] w-[calc(100%+2px)] h-[calc(100%+2px)] rounded-[3px]"
-  );
-
-  const primaryAnimationCn = useMemo(
-    () =>
-      classNames(
-        "absolute block pointer-events-none",
-        spanTransformShine,
-        "z-[2] transition-all duration-[650ms] w-[200%] h-[100%] bg-[length:25%] bg-[linear-gradient(120deg,rgba(86,58,201,1),rgba(187,176,233,1),rgba(86,58,201,1))]"
-      ),
-    [spanTransformShine]
-  );
-
-  const loadingAnimationContainerCn = classNames(
-    "absolute top-0 left-0 w-0 overflow-hidden pointer-events-none",
-    "-left-[1px] z-[1] -mt-[1px] h-[calc(100%+1px)] text-white"
-  );
-
-  const loadingAnimationCn = useMemo(
-    () =>
-      classNames(
-        buttonClasses,
-        "bg-purple-700/30 text-white w-full" // add w-full success make the bar full fill
-      ),
-    [buttonClasses]
-  );
-
-  return (
-    <>
-      {layout === "primary" && (
-        <span className={primaryAnimationContainerCn}>
-          <span className={primaryAnimationCn} />
-        </span>
+const PrimaryShineEffect = React.memo(({ spanTransformShine }) => (
+  <span
+    className={classNames(
+      "absolute -top-px -left-px -z-1 overflow-hidden pointer-events-none rounded-[3px]",
+      "w-[calc(100%+2px)] h-[calc(100%+2px)] bg-purple"
+    )}
+  >
+    <span
+      className={classNames(
+        "absolute block pointer-events-none z-2 w-[200%] h-full transition-all duration-650",
+        "bg-size-[25%] bg-[linear-gradient(120deg,rgba(86,58,201,1),rgba(187,176,233,1),rgba(86,58,201,1))]",
+        spanTransformShine
       )}
-      {loadingAnimation && (
-        <span
-          ref={ref}
-          className={loadingAnimationContainerCn}
-          style={{
-            width: `${fromLoadingPercent}%`,
-          }}
-        >
-          <span className={loadingAnimationCn}>{children}</span>
-        </span>
-      )}
-    </>
-  );
-});
+    />
+  </span>
+));
 
 Button.propTypes = {
   /**
