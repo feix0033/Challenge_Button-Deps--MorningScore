@@ -70,6 +70,8 @@ const Button = React.forwardRef((props, ref) => {
     "tracking-wide"
   );
 
+  const LOADING_STYLE = "bg-white text-purple hover:bg-white hover:text-purple active:bg-white active:text-purple";
+
   return (
     <ButtonContext.Provider
       value={{
@@ -83,44 +85,22 @@ const Button = React.forwardRef((props, ref) => {
       }}
     >
       <MagnetWrapper ref={magnetRef} containerClassName={containerClassName} moveMagnet={moveMagnet} moveOut={moveOut}>
-        <BaseButton
+        <button
           ref={buttonRef}
-          isLoading={isLoading}
-          withoutButtonTag={withoutButtonTag}
-          enterAndOut={enterAndOut}
-          forwardProps={forwardProps}
+          {...forwardProps}
+          className={classNames(buttonClasses, {
+            "inline-flex": withoutButtonTag,
+            [LOADING_STYLE]: isLoading && !withoutButtonTag,
+          })}
+          onMouseEnter={enterAndOut}
+          onMouseOut={enterAndOut}
         >
           {layout === "primary" && <PrimaryShineEffect spanTransformShine={spanTransformShine} />}
           {loadingAnimation && <LoadingEffect buttonClasses={buttonClasses} ref={fillUpAnimRef} />}
           {children}
-        </BaseButton>
+        </button>
       </MagnetWrapper>
     </ButtonContext.Provider>
-  );
-});
-
-const BaseButton = React.forwardRef((props, ref) => {
-  const { isLoading, children, enterAndOut, forwardProps } = props;
-  const { withoutButtonTag, buttonClasses } = useContext(ButtonContext);
-
-  // We don't need to use React.memo to cache the component, because the mouse action will change all the time when the mouse enter and out.
-  return (
-    <button
-      ref={ref}
-      {...forwardProps}
-      className={classNames(
-        buttonClasses,
-        withoutButtonTag
-          ? "inline-flex"
-          : isLoading
-          ? "bg-white text-purple hover:bg-white hover:text-purple active:bg-white active:text-purple"
-          : ""
-      )}
-      onMouseEnter={enterAndOut}
-      onMouseOut={enterAndOut}
-    >
-      {children}
-    </button>
   );
 });
 
@@ -129,7 +109,6 @@ const MagnetWrapper = React.forwardRef((props, ref) => {
   const { layout, withoutButtonTag } = useContext(ButtonContext);
   const { contextSafe } = useGSAP();
 
-  // We don't need to use React.memo to cache the component, because the mouse action will change all the time when the mouse enter and out.
   return layout === "primary" && !withoutButtonTag ? (
     <span
       ref={ref}
