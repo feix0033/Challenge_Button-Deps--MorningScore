@@ -343,7 +343,7 @@ describe("Button Component", () => {
       const { container } = render(
         <Button withoutButtonTag={true}>Span Button</Button>
       );
-      const button = container.querySelector("span");
+      const button = container.querySelector("button");
       expect(button).toBeInTheDocument();
       expect(button).toHaveTextContent("Span Button");
     });

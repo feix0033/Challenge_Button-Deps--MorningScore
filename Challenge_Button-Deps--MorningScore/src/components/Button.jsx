@@ -100,42 +100,6 @@ const Button = React.forwardRef((props, ref) => {
 
   const buttonTextSize = textSizeMap[size];
 
-  const magnetRef = useRef();
-  const moveMagnet = (event) => {
-    if (!(layout === "primary" && !withoutButtonTag)) return;
-    if (!magnetRef.current) return;
-    const magnetButton = event.currentTarget;
-    const bounding = magnetButton.getBoundingClientRect();
-    const strength = 10;
-
-    gsap.to(magnetRef.current, {
-      x:
-        ((event.clientX - bounding.left) / magnetButton.offsetWidth - 0.5) *
-        strength,
-      y:
-        ((event.clientY - bounding.top) / magnetButton.offsetHeight - 0.5) *
-        strength,
-    });
-  };
-
-  const moveOut = (event) => {
-    if (!(layout === "primary" && !withoutButtonTag)) return;
-    if (!magnetRef.current) return;
-    if (
-      magnetRef.current !== event.currentTarget &&
-      magnetRef.current?.contains(event.currentTarget)
-    )
-      return;
-    gsap.to(magnetRef.current, {
-      x: 0,
-      y: 0,
-      ease: "power4.out",
-      duration: 1,
-    });
-  };
-
-  const { contextSafe } = useGSAP();
-
   const [spanTransformShine, setSpanTransformShine] = useState({
     translate: "-100% 0%",
   });
@@ -295,13 +259,67 @@ const Button = React.forwardRef((props, ref) => {
       }
     }
   }, [loadingAnimation, loadingPercent, hasErrors]);
+  const MagnetWrapper = ({ children, containerClassName, enabled = true }) => {
+    const magnetRef = useRef(null);
+    const { contextSafe } = useGSAP();
 
-  const button = (
+    const moveMagnet = contextSafe((e) => {
+      if (!enabled || !magnetRef.current) return;
+
+      const magnetButton = e.currentTarget;
+      const bounding = magnetButton.getBoundingClientRect();
+      const strength = 10;
+
+      gsap.to(magnetRef.current, {
+        x:
+          ((e.clientX - bounding.left) / magnetButton.offsetWidth - 0.5) *
+          strength,
+        y:
+          ((e.clientY - bounding.top) / magnetButton.offsetHeight - 0.5) *
+          strength,
+      });
+    });
+
+    const moveOut = contextSafe((e) => {
+      if (!enabled || !magnetRef.current) return;
+      if (
+        magnetRef.current !== e.currentTarget &&
+        magnetRef.current?.contains(e.currentTarget)
+      )
+        return;
+      gsap.to(magnetRef.current, {
+        x: 0,
+        y: 0,
+        ease: "power4.out",
+        duration: 1,
+      });
+    });
+
+    if (!enabled) return children;
+
+    return (
+      <span
+        className={classNames(
+          containerClassName,
+          "-m-4 p-4 rounded-full inline-flex box-content"
+        )}
+        ref={magnetRef}
+        onMouseMove={moveMagnet}
+        onMouseLeave={moveOut}
+      >
+        {children}
+      </span>
+    );
+  };
+
+  const Button = () => (
     <button
       ref={buttonRef}
       className={classNames(
         buttonClasses,
-        isLoading
+        withoutButtonTag
+          ? "inline-flex"
+          : isLoading
           ? "bg-white text-purple hover:bg-white hover:text-purple active:bg-white active:text-purple"
           : "",
         buttonTextSize
@@ -315,41 +333,13 @@ const Button = React.forwardRef((props, ref) => {
     </button>
   );
 
-  const buttonWithMagnet = (
-    <span
-      className={classNames(
-        containerClassName,
-        "-m-4 p-4 rounded-full inline-flex box-content"
-      )}
-      ref={magnetRef}
-      onMouseMove={contextSafe(moveMagnet)}
-      onMouseLeave={contextSafe(moveOut)}
-    >
-      {button}
-    </span>
-  );
-
-  if (!withoutButtonTag) {
-    return (
-      <Widget FallbackComponent={<div>temp</div>}>
-        {layout === "primary" ? buttonWithMagnet : button}
-      </Widget>
-    );
-  }
-
   return (
-    <Widget FallbackComponent={<div>temp</div>}>
-      <span
-        ref={buttonRef}
-        className={classNames(buttonClasses, "inline-flex", buttonTextSize)}
-        {...forwardProps}
-        onMouseEnter={enterAndOut}
-        onMouseOut={enterAndOut}
-      >
-        {animationElements}
-        {children}
-      </span>
-    </Widget>
+    <MagnetWrapper
+      enabled={!withoutButtonTag && layout === "primary"}
+      containerClassName={containerClassName}
+    >
+      <Button />
+    </MagnetWrapper>
   );
 });
 
