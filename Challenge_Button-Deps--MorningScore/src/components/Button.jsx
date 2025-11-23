@@ -30,9 +30,6 @@ that is not necessarily use a React custom hook since that return a constant val
 
 import { textSizeMap, widthMap, sizeMap, baseStyling } from "../lib/util";
 
-import ErrorViewTemplateSmall from "./ErrorViewTemplateSmall";
-import Widget from "./Widget";
-
 const ButtonContext = createContext();
 
 const Button = React.forwardRef((props, ref) => {
@@ -172,25 +169,23 @@ const Button = React.forwardRef((props, ref) => {
         buttonClasses,
       }}
     >
-      <Widget FallbackComponent={ErrorViewTemplateSmall}>
-        <ButtonWithMagnet
-          ref={magnetRef}
-          containerClassName={containerClassName}
-          moveMagnet={moveMagnet}
-          moveOut={moveOut}
+      <ButtonWithMagnet
+        ref={magnetRef}
+        containerClassName={containerClassName}
+        moveMagnet={moveMagnet}
+        moveOut={moveOut}
+      >
+        <BaseButton
+          ref={buttonRef}
+          isLoading={isLoading}
+          withoutButtonTag={withoutButtonTag}
+          enterAndOut={enterAndOut}
+          forwardProps={forwardProps}
         >
-          <BaseButton
-            ref={buttonRef}
-            isLoading={isLoading}
-            withoutButtonTag={withoutButtonTag}
-            enterAndOut={enterAndOut}
-            forwardProps={forwardProps}
-          >
-            <AnimationElements ref={fillUpAnimRef} />
-            {children}
-          </BaseButton>
-        </ButtonWithMagnet>
-      </Widget>
+          <AnimationElements ref={fillUpAnimRef} />
+          {children}
+        </BaseButton>
+      </ButtonWithMagnet>
     </ButtonContext.Provider>
   );
 });
