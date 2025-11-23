@@ -8,13 +8,10 @@ import React, {
 } from "react";
 import PropTypes from "prop-types";
 import classNames from "classnames";
-import ErrorViewTemplateSmall from "services/bugsnag/ErrorViewTemplateSmall";
-import Widget from "widgets/Widget";
-import useButtonLayoutMap from "ui/app/inputs/buttons/partials/use-button-layout-map";
+import Widget from "./Widget";
+import useButtonLayoutMap from "../hooks/use-button-layout-map";
 import { useGSAP } from "@gsap/react";
-import useColorValue from "support/hooks/ui/styling/use-color-value";
 import gsap from "gsap";
-import twClassNames from "support/utilities/tailwind/twClassNames";
 
 /**
  * A wrapper component for adding a button
@@ -30,7 +27,6 @@ const Button = React.forwardRef((props, ref) => {
     containerClassName,
     children,
     active = false, // 是否处于活动转台
-    highlight = false, /// Not currently supported here. // Remove it.
     withoutButtonTag = false, // 当有这个属性的时候, 显示 animationElement, 没有的时候, 不显示.
     textColor, // 文字颜色
     noTransition = false, // 有没有动画,
@@ -47,9 +43,6 @@ const Button = React.forwardRef((props, ref) => {
     loadingAnimatingCallback,
     ...forwardProps
   } = props;
-
-  const purple = useColorValue("purple");
-  const red = useColorValue("red");
 
   const baseStyling = [
     "inline-flex",
@@ -95,7 +88,7 @@ const Button = React.forwardRef((props, ref) => {
 
   const layoutMap = useButtonLayoutMap(textColor, hoverEnabled);
 
-  const buttonClasses = twClassNames(
+  const buttonClasses = classNames(
     baseStyling,
     sizeMap[size],
     isLoading ? "cursor-wait border border-purple" : layoutMap[layout][active],
@@ -233,7 +226,7 @@ const Button = React.forwardRef((props, ref) => {
             }}
           >
             <span
-              className={twClassNames(
+              className={classNames(
                 buttonClasses,
                 "bg-purple text-white",
                 buttonTextSize
@@ -245,7 +238,7 @@ const Button = React.forwardRef((props, ref) => {
         )}
       </>
     ),
-    [layout, spanTransformShine, loadingAnimation, purple]
+    [layout, spanTransformShine, loadingAnimation]
   );
 
   const timelineRef = useRef(gsap.timeline({ paused: true }));
@@ -290,7 +283,7 @@ const Button = React.forwardRef((props, ref) => {
             });
         } else {
           timeline.to(fillUpAnimRef.current, {
-            backgroundColor: red,
+            backgroundColor: "red",
             width: "0%",
             duration: 1,
             ease: "circ.out",
@@ -324,7 +317,7 @@ const Button = React.forwardRef((props, ref) => {
 
   const buttonWithMagnet = (
     <span
-      className={twClassNames(
+      className={classNames(
         containerClassName,
         "-m-4 p-4 rounded-full inline-flex box-content"
       )}
@@ -338,14 +331,14 @@ const Button = React.forwardRef((props, ref) => {
 
   if (!withoutButtonTag) {
     return (
-      <Widget FallbackComponent={ErrorViewTemplateSmall}>
+      <Widget FallbackComponent={<div>temp</div>}>
         {layout === "primary" ? buttonWithMagnet : button}
       </Widget>
     );
   }
 
   return (
-    <Widget FallbackComponent={ErrorViewTemplateSmall}>
+    <Widget FallbackComponent={<div>temp</div>}>
       <span
         ref={buttonRef}
         className={classNames(buttonClasses, "inline-flex", buttonTextSize)}

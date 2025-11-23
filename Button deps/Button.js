@@ -275,6 +275,8 @@ const Button = React.forwardRef((props, ref) => {
     </span>
   );
 
+  // The following block can be move to the return condition.
+  // notice that when the condition is withoutButtonTag, then it should without the magnet too.
   if (!withoutButtonTag) {
     return (
       <Widget FallbackComponent={ErrorViewTemplateSmall}>
@@ -286,7 +288,9 @@ const Button = React.forwardRef((props, ref) => {
   }
 
   return (
+    /* Based on the SRP the widget should out of the Button component, that should be remove. */
     <Widget FallbackComponent={ErrorViewTemplateSmall}>
+      {/* The span acturlly is the button component, only the style has a little different, so we can change it to be the button, with a style condition*/}
       <span ref={buttonRef} className={classNames(buttonClasses, 'inline-flex', buttonTextSize)} {...forwardProps} onMouseEnter={enterAndOut} onMouseOut={enterAndOut}>
         { animationElements }
         {children}
