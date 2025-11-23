@@ -98,6 +98,7 @@ const Button = React.forwardRef((props, ref) => {
 
   const magnetRef = useRef();
   const moveMagnet = (event) => {
+    /* The magnet warpper will only enable under the condition, this check is not necessary. */
     if (!(layout === "primary" && !withoutButtonTag)) return;
     if (!magnetRef.current) return;
     const magnetButton = event.currentTarget;
@@ -111,6 +112,7 @@ const Button = React.forwardRef((props, ref) => {
   };
 
   const moveOut = (event) => {
+    /* The magnet warpper will only enable under the condition, this check is not necessary. */
     if (!(layout === "primary" && !withoutButtonTag)) return;
     if (!magnetRef.current) return;
     if (magnetRef.current !== event.currentTarget && magnetRef.current?.contains(event.currentTarget)) return;
@@ -129,6 +131,7 @@ const Button = React.forwardRef((props, ref) => {
   });
   const buttonRef = useRef();
 
+  /* There are no reason we explore the button ref out of the scorp, it will be remove to avoid unexpect result */
   useImperativeHandle(ref, () => buttonRef.current);
 
   const enterAndOut = useCallback(

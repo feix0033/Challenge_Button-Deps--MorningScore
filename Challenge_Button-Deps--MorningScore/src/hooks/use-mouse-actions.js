@@ -1,57 +1,24 @@
 import gsap from "gsap";
-import { useState, useRef, useImperativeHandle, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useGSAP } from "@gsap/react";
 
 export const useMouseActions = (
-  ref,
   layout,
   buttonRef,
-  magnetRef,
   loadingPercent,
   hasErrors,
   loadingAnimatingCallback,
-  withoutButtonTag,
   fillUpAnimRef,
   loadingAnimation,
   fromLoadingPercent
 ) => {
+  /* Since I'm using the React 19, there are no warning for this. It just simplly avoid the version warning.*/
+  /* It is not necessary to put it here, but for secure, I just insert it. */
+  gsap.registerPlugin(useGSAP);
+
   const timelineRef = useRef(null);
 
-  const [spanTransformShine, setSpanTransformShine] =
-    useState("-translate-x-full");
-
-  const moveMagnet = (event) => {
-    if (!(layout === "primary" && !withoutButtonTag)) return;
-    if (!magnetRef.current) return;
-    const magnetButton = event.currentTarget;
-    const bounding = magnetButton.getBoundingClientRect();
-    const strength = 10;
-
-    gsap.to(magnetRef.current, {
-      x:
-        ((event.clientX - bounding.left) / magnetButton.offsetWidth - 0.5) *
-        strength,
-      y:
-        ((event.clientY - bounding.top) / magnetButton.offsetHeight - 0.5) *
-        strength,
-    });
-  };
-
-  const moveOut = (event) => {
-    if (!(layout === "primary" && !withoutButtonTag)) return;
-    if (!magnetRef.current) return;
-    if (
-      magnetRef.current !== event.currentTarget &&
-      magnetRef.current?.contains(event.currentTarget)
-    )
-      return;
-    gsap.to(magnetRef.current, {
-      x: 0,
-      y: 0,
-      ease: "power4.out",
-      duration: 1,
-    });
-  };
+  const [spanTransformShine, setSpanTransformShine] = useState("-translate-x-full");
 
   const enterAndOut = (e) => {
     e.stopPropagation();
@@ -142,11 +109,14 @@ export const useMouseActions = (
     }
   );
 
+  /* 
+  We shouldn't explore the button ref out of this scorp, that will leading to unexpect behaviro.
   useImperativeHandle(ref, () => buttonRef.current);
+  */
 
   useEffect(() => {
     timelineRef.current?.restart();
   }, [loadingPercent]);
 
-  return { spanTransformShine, moveMagnet, moveOut, enterAndOut };
+  return { spanTransformShine, enterAndOut };
 };

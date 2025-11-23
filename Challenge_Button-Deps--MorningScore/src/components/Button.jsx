@@ -8,8 +8,9 @@ import useButtonLayoutMap from "../hooks/use-button-layout-map.js";
 import { useMouseActions } from "../hooks/use-mouse-actions.js";
 
 import { textSizeMap, widthMap, sizeMap, baseStyling } from "../lib/util";
+import { useMagnetEffect } from "../hooks/use-magnet-effect.js";
 
-const Button = React.forwardRef((props, ref) => {
+const Button = (props) => {
   const {
     layout = "primary",
     width = "default",
@@ -52,19 +53,15 @@ const Button = React.forwardRef((props, ref) => {
   );
 
   /* Here is the component behaviro */
-  const magnetRef = useRef();
   const buttonRef = useRef();
   const fillUpAnimRef = useRef();
 
   const { spanTransformShine, moveMagnet, moveOut, enterAndOut } = useMouseActions(
-    ref,
     layout,
     buttonRef,
-    magnetRef,
     loadingPercent,
     hasErrors,
     loadingAnimatingCallback,
-    withoutButtonTag,
     fillUpAnimRef,
     loadingAnimation,
     fromLoadingPercent
@@ -73,12 +70,10 @@ const Button = React.forwardRef((props, ref) => {
   /* The actual rendering component */
   return (
     <MagnetWrapper
-      ref={magnetRef}
       containerClassName={containerClassName}
       moveMagnet={moveMagnet}
       moveOut={moveOut}
-      layout={layout}
-      withoutButtonTag={withoutButtonTag}
+      enabled={layout === "primary" && !withoutButtonTag}
     >
       <button
         ref={buttonRef}
@@ -97,15 +92,18 @@ const Button = React.forwardRef((props, ref) => {
       </button>
     </MagnetWrapper>
   );
-});
+};
 
-const MagnetWrapper = React.forwardRef((props, ref) => {
-  const { containerClassName, moveMagnet, moveOut, children, layout, withoutButtonTag } = props;
+const MagnetWrapper = (props) => {
+  const magnetRef = useRef();
   const { contextSafe } = useGSAP();
 
-  return layout === "primary" && !withoutButtonTag ? (
+  const { containerClassName, children, enabled } = props;
+  const { moveMagnet, moveOut } = useMagnetEffect(magnetRef);
+
+  return enabled ? (
     <span
-      ref={ref}
+      ref={magnetRef}
       className={classNames(containerClassName, "-m-4 p-4 rounded-full inline-flex box-content")}
       onMouseMove={contextSafe(moveMagnet)}
       onMouseLeave={contextSafe(moveOut)}
@@ -115,7 +113,7 @@ const MagnetWrapper = React.forwardRef((props, ref) => {
   ) : (
     children
   );
-});
+};
 
 const LoadingEffect = React.forwardRef(({ buttonClasses }, ref) => (
   <span
