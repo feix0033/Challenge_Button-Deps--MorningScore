@@ -2,20 +2,15 @@ import gsap from "gsap";
 import { useRef, useEffect } from "react";
 import { useGSAP } from "@gsap/react";
 
-export const useMouseActions = (
-  layout,
+export const useLoadingEffect = (
   buttonRef,
-  loadingPercent,
-  hasErrors,
-  loadingAnimatingCallback,
   fillUpAnimRef,
+  hasErrors,
+  fromLoadingPercent,
+  loadingPercent,
   loadingAnimation,
-  fromLoadingPercent
+  loadingAnimatingCallback
 ) => {
-  /* Since I'm using the React 19, there are no warning for this. It just simplly avoid the version warning.*/
-  /* It is not necessary to put it here, but for secure, I just insert it. */
-  gsap.registerPlugin(useGSAP);
-
   const timelineRef = useRef(null);
 
   useGSAP(
@@ -31,8 +26,6 @@ export const useMouseActions = (
       timeline.clear();
 
       if (hasErrors) {
-        // this animation has an issue, when there are missing the return, the red backgroud will display, otherwise it is not.
-        // todo: need to fix the animation red background has not effert.
         timeline.to(fillUpAnimRef.current, {
           backgroundColor: "red", // change the red value to semantic css variable
           width: "0%",

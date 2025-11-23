@@ -5,7 +5,7 @@ import classNames from "classnames";
 import { useGSAP } from "@gsap/react";
 
 import useButtonLayoutMap from "../hooks/use-button-layout-map.js";
-import { useMouseActions } from "../hooks/use-mouse-actions.js";
+import { useLoadingEffect } from "../hooks/use-mouse-actions.js";
 
 import { textSizeMap, widthMap, sizeMap, baseStyling } from "../lib/util";
 import { useMagnetEffect } from "../hooks/use-magnet-effect.js";
@@ -57,15 +57,14 @@ const Button = (props) => {
   const buttonRef = useRef();
   const fillUpAnimRef = useRef();
 
-  useMouseActions(
-    layout,
+  useLoadingEffect(
     buttonRef,
-    loadingPercent,
-    hasErrors,
-    loadingAnimatingCallback,
     fillUpAnimRef,
+    hasErrors,
+    fromLoadingPercent,
+    loadingPercent,
     loadingAnimation,
-    fromLoadingPercent
+    loadingAnimatingCallback
   );
 
   const { spanTransformShine, enterAndOut } = usePrimaryShineEffect(buttonRef);
@@ -113,16 +112,6 @@ const MagnetWrapper = (props) => {
   );
 };
 
-const LoadingEffect = React.forwardRef(({ buttonClasses }, ref) => (
-  <span
-    ref={ref}
-    className={"absolute top-0 left-0 w-0 overflow-hidden pointer-events-none z-1 -mt-px h-[calc(100%+1px)] text-white"}
-  >
-    {/* Below here, this element need to add a full width (w-full) that can show the loaiding bar correctly. */}
-    <span className={classNames(buttonClasses, "bg-purple-700/30 text-white w-full")} />
-  </span>
-));
-
 const PrimaryShineEffect = ({ spanTransformShine }) => (
   <span
     className={classNames(
@@ -139,6 +128,16 @@ const PrimaryShineEffect = ({ spanTransformShine }) => (
     />
   </span>
 );
+
+const LoadingEffect = React.forwardRef(({ buttonClasses }, ref) => (
+  <span
+    ref={ref}
+    className={"absolute top-0 left-0 w-0 overflow-hidden pointer-events-none z-1 -mt-px h-[calc(100%+1px)] text-white"}
+  >
+    {/* Below here, this element need to add a full width (w-full) that can show the loaiding bar correctly. */}
+    <span className={classNames(buttonClasses, "bg-purple-700/30 text-white w-full")} />
+  </span>
+));
 
 Button.propTypes = {
   /**
