@@ -20,7 +20,6 @@ const Button = (props) => {
     containerClassName,
     children,
     active = false,
-    // highlight = false, /// Not currently supported here
     withoutButtonTag = false,
     textColor,
     noTransition = false,
@@ -199,6 +198,29 @@ Button.propTypes = {
    * Active, represents whether the button is currently active, if the button is active the styling will be changed.
    */
   active: PropTypes.bool,
+  /**
+   * Size of the button
+   */
+  size: PropTypes.oneOf(["large", "default", "small", "xsmall", "xxsmall", "custom"]),
+  fontWeight: PropTypes.oneOf(["light", "normal", "medium", "semibold", "bold"]),
+  hoverEnabled: PropTypes.bool,
+  withoutButtonTag: PropTypes.bool,
+  textColor: PropTypes.string,
+  noTransition: PropTypes.bool,
+  center: PropTypes.bool,
+  defaultPadding: PropTypes.bool,
+  defaultOutline: PropTypes.bool,
+  isLoading: PropTypes.bool,
+  hasErrors: PropTypes.bool,
+  textNoWrap: PropTypes.bool,
+  fromLoadingPercent: PropTypes.number,
+  loadingPercent: PropTypes.number,
+  loadingAnimation: PropTypes.bool,
+  loadingAnimatingCallback: PropTypes.func,
+  className: PropTypes.string,
+  containerClassName: PropTypes.string,
+  children: PropTypes.node,
+  forwardProps: PropTypes.any,
 };
 
 export default Button;
