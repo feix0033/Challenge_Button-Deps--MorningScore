@@ -1,41 +1,16 @@
 // The dependancy imports form node_modules
-import React, {
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-  createContext,
-  useContext,
-  useMemo,
-} from "react";
+import React, { useRef } from "react";
 import PropTypes from "prop-types";
 import classNames from "classnames";
-import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
-// The hooks that contain in the offered source.
-// Update the paths as needed.
 import useButtonLayoutMap from "../hooks/use-button-layout-map.js";
-import { useMouseActions } from "../hooks/use-mouse-actions.js";
+import { useLoadingEffect } from "../hooks/use-mouse-actions.js";
 
-/* THE HOOKS AND UTILITIES THAT DOES NOT CONTAIN IN THE OFFERED SOURCE
-The following hooks and utilities that does not contain in the offered source, 
-I created the simple implementations based on the usage. And update the paths as needed.
-*/
-/* 
-Based on the usage, this hook should return a color value string based on the input color name.
-that is not necessarily use a React custom hook since that return a constant value without using any of the React hook.
-*/
-// import useColorValue from './hooks/use-color-value';
+import { useMagnetEffect } from "../hooks/use-magnet-effect.js";
+import { usePrimaryShineEffect } from "../hooks/use-primary-shine-effect.js";
 
-import { textSizeMap, widthMap, sizeMap, baseStyling } from "../lib/util";
-
-import ErrorViewTemplateSmall from "./ErrorViewTemplateSmall";
-import Widget from "./Widget";
-
-const ButtonContext = createContext();
-
-const Button = React.forwardRef((props, ref) => {
+const Button = (props) => {
   const {
     layout = "primary",
     width = "default",
@@ -45,7 +20,6 @@ const Button = React.forwardRef((props, ref) => {
     containerClassName,
     children,
     active = false,
-    // highlight = false, /// Not currently supported here
     withoutButtonTag = false,
     textColor,
     noTransition = false,
@@ -63,191 +37,92 @@ const Button = React.forwardRef((props, ref) => {
     ...forwardProps
   } = props;
 
-  const [spanTransformShine, setSpanTransformShine] =
-    useState("-translate-x-full");
-
-  const magnetRef = useRef();
-  const buttonRef = useRef();
-  const fillUpAnimRef = useRef();
-  const timelineRef = useRef(null);
-
-  const { moveMagnet, moveOut, enterAndOut } = useMouseActions(
-    layout,
-    buttonRef,
-    magnetRef,
-    withoutButtonTag,
-    setSpanTransformShine
-  );
-
+  /* This is the style part that I should put them together */
   const layoutMap = useButtonLayoutMap(textColor, hoverEnabled);
+
+  const widthMap = (size) => ({
+    default: "",
+    full: "w-full",
+    square: size === "small" ? "w-10" : size === "large" ? "w-12" : "w-11",
+  });
+
+  const sizeMap = (defaultPadding, layout, textNoWrap) => ({
+    large: ["h-12 py-1", { "px-4": defaultPadding && layout !== "text" }],
+    default: ["h-10 text-sm", { "px-3.5": defaultPadding && layout !== "text" }, { "h-auto": !textNoWrap }],
+    small: ["h-10 text-sm", { "px-3": defaultPadding && layout !== "text" }],
+    xsmall: ["h-8 text-xs", { "px-2.5": defaultPadding && layout !== "text" }],
+    xxsmall: ["h-6 text-xs", { "px-2": defaultPadding && layout !== "text" }],
+    custom: "",
+  });
+
+  const baseStyling = (center, fontWeight, defaultOutline, noTransition, textNoWrap) => [
+    "inline-flex text-center rounded cursor-pointer disabled:cursor-default z-0 relative tracking-wide",
+    { "items-center justify-center": center },
+    [`font-${fontWeight}`],
+    { "outline-none focus-visible:outline-purple": defaultOutline },
+    { "transition ease-in-out duration-150": !noTransition },
+    { "whitespace-no-wrap": textNoWrap },
+    { [`text-${textColor}`]: textColor },
+    { "cursor-wait border border-purple": isLoading}
+  ];
 
   const buttonClasses = classNames(
     baseStyling(center, fontWeight, defaultOutline, noTransition, textNoWrap),
     sizeMap(defaultPadding, layout, textNoWrap)[size],
     widthMap(size)[width],
-    textSizeMap[size], // the text size map always exist with the button classes, migrate it into the button classes.
-    isLoading ? "cursor-wait border border-purple" : layoutMap[layout][active],
-    { [`text-${textColor}`]: textColor },
+    !isLoading && layoutMap[layout][active],
     className,
-    "tracking-wide"
   );
 
-  useGSAP(
-    () => {
-      // if the buttonRef and fillUpAnimRef is not exist, we don't need to create the animation instance.
-      if (!(buttonRef.current && fillUpAnimRef.current)) return;
-      if (!(loadingAnimation && typeof loadingPercent === "number")) return;
+  /* Here is the component behaviro */
+  const buttonRef = useRef();
+  const fillUpAnimRef = useRef();
 
-      // initial gsap timelin, because the side effect, the initial should be in useEffect, the useGSAP already optimazed it.
-      timelineRef.current = gsap.timeline({ paused: true });
-
-      const timeline = timelineRef.current;
-      timeline.clear();
-
-      if (hasErrors) {
-        // this animation has an issue, when there are missing the return, the red backgroud will display, otherwise it is not.
-        // todo: need to fix the animation red background has not effert.
-        timeline.to(fillUpAnimRef.current, {
-          backgroundColor: "red", // change the red value to semantic css variable
-          width: "0%",
-          duration: 1,
-          ease: "circ.out",
-          onComplete: () => {
-            loadingAnimatingCallback?.(false);
-          },
-        });
-        return;
-      }
-
-      timeline
-        .to(fillUpAnimRef.current, {
-          width: `${fromLoadingPercent}%`,
-          duration: 0,
-        })
-        .to(fillUpAnimRef.current, {
-          width: `${loadingPercent}%`,
-          duration: 1,
-          ease: "circ.out",
-          onStart: () => {
-            loadingAnimatingCallback?.(true);
-          },
-        })
-        .to(buttonRef.current, {
-          scale: loadingPercent === 100 ? 1.1 : 1,
-          duration: 0.5,
-          delay: -0.5,
-          ease: "power4.inOut",
-          repeat: 1,
-          yoyo: true,
-          yoyoEase: "power4.inOut",
-        })
-        .to(buttonRef.current, {
-          duration: 0.5,
-          onComplete: () => {
-            loadingAnimatingCallback?.(false);
-          },
-        });
-    },
-    {
-      dependencies: [loadingAnimation, loadingPercent, hasErrors],
-      scope: [fillUpAnimRef, buttonRef], // add the scop will let gsap automotically kill the animation process when the component unmounted.
-    }
+  useLoadingEffect(
+    buttonRef,
+    fillUpAnimRef,
+    hasErrors,
+    fromLoadingPercent,
+    loadingPercent,
+    loadingAnimation,
+    loadingAnimatingCallback
   );
 
-  useImperativeHandle(ref, () => buttonRef.current);
+  const { spanTransformShine, enterAndOut } = usePrimaryShineEffect(buttonRef);
 
-  useEffect(() => {
-    timelineRef.current?.restart();
-  }, [loadingPercent]);
-
+  /* The actual rendering component */
   return (
-    <ButtonContext.Provider
-      value={{
-        layout,
-        withoutButtonTag,
-        spanTransformShine,
-        loadingAnimation,
-        fromLoadingPercent,
-        fillUpAnimRef,
-        buttonClasses,
-      }}
-    >
-      <Widget FallbackComponent={ErrorViewTemplateSmall}>
-        <ButtonWithMagnet
-          ref={magnetRef}
-          containerClassName={containerClassName}
-          moveMagnet={moveMagnet}
-          moveOut={moveOut}
-        >
-          <BaseButton
-            ref={buttonRef}
-            isLoading={isLoading}
-            withoutButtonTag={withoutButtonTag}
-            enterAndOut={enterAndOut}
-            forwardProps={forwardProps}
-          >
-            <AnimationElements ref={fillUpAnimRef} />
-            {children}
-          </BaseButton>
-        </ButtonWithMagnet>
-      </Widget>
-    </ButtonContext.Provider>
+    <MagnetWrapper containerClassName={containerClassName} enabled={layout === "primary" && !withoutButtonTag}>
+      <button
+        ref={buttonRef}
+        {...forwardProps}
+        className={classNames(buttonClasses, {
+          "inline-flex": withoutButtonTag,
+          "bg-white text-purple hover:bg-white hover:text-purple active:bg-white active:text-purple":
+            isLoading && !withoutButtonTag,
+        })}
+        onMouseEnter={enterAndOut}
+        onMouseOut={enterAndOut}
+      >
+        {layout === "primary" && <PrimaryShineEffect spanTransformShine={spanTransformShine} />}
+        {loadingAnimation && <LoadingEffect buttonClasses={buttonClasses} ref={fillUpAnimRef} />}
+        {children}
+      </button>
+    </MagnetWrapper>
   );
-});
+};
 
-const BaseButton = React.forwardRef((props, ref) => {
-  const { isLoading, children, enterAndOut, forwardProps } = props;
-  const { withoutButtonTag, buttonClasses } = useContext(ButtonContext);
+const MagnetWrapper = (props) => {
+  const { containerClassName, children, enabled } = props;
 
-  const baseButtonCn = useMemo(
-    () =>
-      classNames(
-        buttonClasses,
-        withoutButtonTag
-          ? "inline-flex"
-          : isLoading
-          ? "bg-white text-purple hover:bg-white hover:text-purple active:bg-white active:text-purple"
-          : ""
-      ),
-    [withoutButtonTag, isLoading, buttonClasses]
-  );
-
-  // We don't need to use React.memo to cache the component, because the mouse action will change all the time when the mouse enter and out.
-  return (
-    <button
-      ref={ref}
-      {...forwardProps}
-      className={baseButtonCn}
-      onMouseEnter={enterAndOut}
-      onMouseOut={enterAndOut}
-    >
-      {children}
-    </button>
-  );
-});
-
-const ButtonWithMagnet = React.forwardRef((props, ref) => {
-  const { containerClassName, moveMagnet, moveOut, children } = props;
-  const { layout, withoutButtonTag } = useContext(ButtonContext);
+  const magnetRef = useRef();
   const { contextSafe } = useGSAP();
+  const { moveMagnet, moveOut } = useMagnetEffect(magnetRef);
 
-  const buttonWithMagnet = useMemo(
-    () =>
-      classNames(
-        containerClassName,
-        "-m-4 p-4 rounded-full inline-flex box-content"
-      ),
-    [containerClassName]
-  );
-
-  // display the magnet button when the layout is primary and withoutButtonTag is false
-  const hasMagnetWarp = layout === "primary" && !withoutButtonTag;
-
-  // We don't need to use React.memo to cache the component, because the mouse action will change all the time when the mouse enter and out.
-  return hasMagnetWarp ? (
+  return enabled ? (
     <span
-      ref={ref}
-      className={buttonWithMagnet}
+      ref={magnetRef}
+      className={classNames(containerClassName, "-m-4 p-4 rounded-full inline-flex box-content")}
       onMouseMove={contextSafe(moveMagnet)}
       onMouseLeave={contextSafe(moveOut)}
     >
@@ -256,69 +131,34 @@ const ButtonWithMagnet = React.forwardRef((props, ref) => {
   ) : (
     children
   );
-});
+};
 
-const AnimationElements = React.forwardRef((props, ref) => {
-  const { children } = props;
-
-  const {
-    layout,
-    spanTransformShine,
-    loadingAnimation,
-    fromLoadingPercent,
-    buttonClasses,
-  } = useContext(ButtonContext);
-
-  const primaryAnimationContainerCn = classNames(
-    "absolute overflow-hidden bg-purple pointer-events-none",
-    "-z-[1] -top-[1px] -left-[1px] w-[calc(100%+2px)] h-[calc(100%+2px)] rounded-[3px]"
-  );
-
-  const primaryAnimationCn = useMemo(
-    () =>
-      classNames(
-        "absolute block pointer-events-none",
-        spanTransformShine,
-        "z-[2] transition-all duration-[650ms] w-[200%] h-[100%] bg-[length:25%] bg-[linear-gradient(120deg,rgba(86,58,201,1),rgba(187,176,233,1),rgba(86,58,201,1))]"
-      ),
-    [spanTransformShine]
-  );
-
-  const loadingAnimationContainerCn = classNames(
-    "absolute top-0 left-0 w-0 overflow-hidden pointer-events-none",
-    "-left-[1px] z-[1] -mt-[1px] h-[calc(100%+1px)] text-white"
-  );
-
-  const loadingAnimationCn = useMemo(
-    () =>
-      classNames(
-        buttonClasses,
-        "bg-purple-700/30 text-white w-full" // add w-full success make the bar full fill
-      ),
-    [buttonClasses]
-  );
-
-  return (
-    <>
-      {layout === "primary" && (
-        <span className={primaryAnimationContainerCn}>
-          <span className={primaryAnimationCn} />
-        </span>
+const PrimaryShineEffect = ({ spanTransformShine }) => (
+  <span
+    className={classNames(
+      "absolute -top-px -left-px -z-1 overflow-hidden pointer-events-none rounded-[3px]",
+      "w-[calc(100%+2px)] h-[calc(100%+2px)] bg-purple"
+    )}
+  >
+    <span
+      className={classNames(
+        "absolute block pointer-events-none z-2 w-[200%] h-full transition-all duration-650",
+        "bg-size-[25%] bg-[linear-gradient(120deg,rgba(86,58,201,1),rgba(187,176,233,1),rgba(86,58,201,1))]",
+        spanTransformShine
       )}
-      {loadingAnimation && (
-        <span
-          ref={ref}
-          className={loadingAnimationContainerCn}
-          style={{
-            width: `${fromLoadingPercent}%`,
-          }}
-        >
-          <span className={loadingAnimationCn}>{children}</span>
-        </span>
-      )}
-    </>
-  );
-});
+    />
+  </span>
+);
+
+const LoadingEffect = React.forwardRef(({ buttonClasses }, ref) => (
+  <span
+    ref={ref}
+    className={"absolute top-0 left-0 w-0 overflow-hidden pointer-events-none z-1 -mt-px h-[calc(100%+1px)] text-white"}
+  >
+    {/* Below here, this element need to add a full width (w-full) that can show the loaiding bar correctly. */}
+    <span className={classNames(buttonClasses, "bg-purple-700/30 text-white w-full")} />
+  </span>
+));
 
 Button.propTypes = {
   /**
@@ -358,6 +198,29 @@ Button.propTypes = {
    * Active, represents whether the button is currently active, if the button is active the styling will be changed.
    */
   active: PropTypes.bool,
+  /**
+   * Size of the button
+   */
+  size: PropTypes.oneOf(["large", "default", "small", "xsmall", "xxsmall", "custom"]),
+  fontWeight: PropTypes.oneOf(["light", "normal", "medium", "semibold", "bold"]),
+  hoverEnabled: PropTypes.bool,
+  withoutButtonTag: PropTypes.bool,
+  textColor: PropTypes.string,
+  noTransition: PropTypes.bool,
+  center: PropTypes.bool,
+  defaultPadding: PropTypes.bool,
+  defaultOutline: PropTypes.bool,
+  isLoading: PropTypes.bool,
+  hasErrors: PropTypes.bool,
+  textNoWrap: PropTypes.bool,
+  fromLoadingPercent: PropTypes.number,
+  loadingPercent: PropTypes.number,
+  loadingAnimation: PropTypes.bool,
+  loadingAnimatingCallback: PropTypes.func,
+  className: PropTypes.string,
+  containerClassName: PropTypes.string,
+  children: PropTypes.node,
+  forwardProps: PropTypes.any,
 };
 
 export default Button;

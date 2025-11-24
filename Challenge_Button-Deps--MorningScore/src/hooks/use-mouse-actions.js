@@ -1,71 +1,84 @@
 import gsap from "gsap";
+import { useRef, useEffect } from "react";
+import { useGSAP } from "@gsap/react";
 
-export const useMouseActions = (
-  layout,
+export const useLoadingEffect = (
   buttonRef,
-  magnetRef,
-  withoutButtonTag,
-  setSpanTransformShine
+  fillUpAnimRef,
+  hasErrors,
+  fromLoadingPercent,
+  loadingPercent,
+  loadingAnimation,
+  loadingAnimatingCallback
 ) => {
-  const moveMagnet = (event) => {
-    if (!(layout === "primary" && !withoutButtonTag)) return;
-    if (!magnetRef.current) return;
-    const magnetButton = event.currentTarget;
-    const bounding = magnetButton.getBoundingClientRect();
-    const strength = 10;
+  const timelineRef = useRef(null);
 
-    gsap.to(magnetRef.current, {
-      x:
-        ((event.clientX - bounding.left) / magnetButton.offsetWidth - 0.5) *
-        strength,
-      y:
-        ((event.clientY - bounding.top) / magnetButton.offsetHeight - 0.5) *
-        strength,
-    });
-  };
+  useGSAP(
+    () => {
+      // if the buttonRef and fillUpAnimRef is not exist, we don't need to create the animation instance.
+      if (!(buttonRef.current && fillUpAnimRef.current)) return;
+      if (!(loadingAnimation && typeof loadingPercent === "number")) return;
 
-  const moveOut = (event) => {
-    if (!(layout === "primary" && !withoutButtonTag)) return;
-    if (!magnetRef.current) return;
-    if (
-      magnetRef.current !== event.currentTarget &&
-      magnetRef.current?.contains(event.currentTarget)
-    )
-      return;
-    gsap.to(magnetRef.current, {
-      x: 0,
-      y: 0,
-      ease: "power4.out",
-      duration: 1,
-    });
-  };
+      // initial gsap timelin, because the side effect, the initial should be in useEffect, the useGSAP already optimazed it.
+      timelineRef.current = gsap.timeline({ paused: true });
 
-  const enterAndOut = (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (!buttonRef.current) return;
+      const timeline = timelineRef.current;
+      timeline.clear();
 
-    // Handle mouseenter event
-    if (e.type === "mouseenter") {
-      if (layout === "primary") {
-        setSpanTransformShine("translate-x-full");
+      if (hasErrors) {
+        timeline.to(fillUpAnimRef.current, {
+          backgroundColor: "red", // change the red value to semantic css variable
+          width: "0%",
+          duration: 1,
+          ease: "circ.out",
+          onComplete: () => {
+            loadingAnimatingCallback?.(false);
+          },
+        });
+        return;
       }
+
+      timeline
+        .to(fillUpAnimRef.current, {
+          width: `${fromLoadingPercent}%`,
+          duration: 0,
+        })
+        .to(fillUpAnimRef.current, {
+          width: `${loadingPercent}%`,
+          duration: 1,
+          ease: "circ.out",
+          onStart: () => {
+            loadingAnimatingCallback?.(true);
+          },
+        })
+        .to(buttonRef.current, {
+          scale: loadingPercent === 100 ? 1.1 : 1,
+          duration: 0.5,
+          delay: -0.5,
+          ease: "power4.inOut",
+          repeat: 1,
+          yoyo: true,
+          yoyoEase: "power4.inOut",
+        })
+        .to(buttonRef.current, {
+          duration: 0.5,
+          onComplete: () => {
+            loadingAnimatingCallback?.(false);
+          },
+        });
+    },
+    {
+      dependencies: [loadingAnimation, loadingPercent, hasErrors],
+      scope: [fillUpAnimRef, buttonRef], // add the scop will let gsap automotically kill the animation process when the component unmounted.
     }
+  );
 
-    // mouseout semantics: https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/relatedTarget
-    // the element that triggered the event, entered to, exited from
-    // console.log(e.currentTarget, e.relatedTarget, e.target);
+  /* 
+  We shouldn't explore the button ref out of this scorp, that will leading to unexpect behaviro.
+  useImperativeHandle(ref, () => buttonRef.current);
+  */
 
-    // Handle mouseleave event
-    if (e.type === "mouseout") {
-      // Check if the mouse is leaving the button and not entering a child element
-      if (buttonRef.current && !buttonRef.current?.contains(e.relatedTarget)) {
-        if (layout === "primary") {
-          setSpanTransformShine("-translate-x-full");
-        }
-      }
-    }
-  };
-
-  return { moveMagnet, moveOut, enterAndOut };
+  useEffect(() => {
+    timelineRef.current?.restart();
+  }, [loadingPercent]);
 };
