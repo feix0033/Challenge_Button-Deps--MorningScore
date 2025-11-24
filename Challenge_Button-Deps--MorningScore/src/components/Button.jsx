@@ -7,7 +7,6 @@ import { useGSAP } from "@gsap/react";
 import useButtonLayoutMap from "../hooks/use-button-layout-map.js";
 import { useLoadingEffect } from "../hooks/use-mouse-actions.js";
 
-import { textSizeMap, widthMap, sizeMap, baseStyling } from "../lib/util";
 import { useMagnetEffect } from "../hooks/use-magnet-effect.js";
 import { usePrimaryShineEffect } from "../hooks/use-primary-shine-effect.js";
 
@@ -42,15 +41,38 @@ const Button = (props) => {
   /* This is the style part that I should put them together */
   const layoutMap = useButtonLayoutMap(textColor, hoverEnabled);
 
+  const widthMap = (size) => ({
+    default: "",
+    full: "w-full",
+    square: size === "small" ? "w-10" : size === "large" ? "w-12" : "w-11",
+  });
+
+  const sizeMap = (defaultPadding, layout, textNoWrap) => ({
+    large: ["h-12 py-1", { "px-4": defaultPadding && layout !== "text" }],
+    default: ["h-10 text-sm", { "px-3.5": defaultPadding && layout !== "text" }, { "h-auto": !textNoWrap }],
+    small: ["h-10 text-sm", { "px-3": defaultPadding && layout !== "text" }],
+    xsmall: ["h-8 text-xs", { "px-2.5": defaultPadding && layout !== "text" }],
+    xxsmall: ["h-6 text-xs", { "px-2": defaultPadding && layout !== "text" }],
+    custom: "",
+  });
+
+  const baseStyling = (center, fontWeight, defaultOutline, noTransition, textNoWrap) => [
+    "inline-flex text-center rounded cursor-pointer disabled:cursor-default z-0 relative tracking-wide",
+    { "items-center justify-center": center },
+    [`font-${fontWeight}`],
+    { "outline-none focus-visible:outline-purple": defaultOutline },
+    { "transition ease-in-out duration-150": !noTransition },
+    { "whitespace-no-wrap": textNoWrap },
+    { [`text-${textColor}`]: textColor },
+    { "cursor-wait border border-purple": isLoading}
+  ];
+
   const buttonClasses = classNames(
     baseStyling(center, fontWeight, defaultOutline, noTransition, textNoWrap),
     sizeMap(defaultPadding, layout, textNoWrap)[size],
     widthMap(size)[width],
-    textSizeMap[size], // the text size map always exist with the button classes, migrate it into the button classes.
-    isLoading ? "cursor-wait border border-purple" : layoutMap[layout][active],
-    { [`text-${textColor}`]: textColor },
+    !isLoading && layoutMap[layout][active],
     className,
-    "tracking-wide"
   );
 
   /* Here is the component behaviro */

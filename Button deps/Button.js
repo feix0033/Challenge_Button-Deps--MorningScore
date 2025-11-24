@@ -70,7 +70,7 @@ const Button = React.forwardRef((props, ref) => {
   const textSizeMap = {
     large: "",
     default: "text-sm",
-    small: "text-smedium",
+    small: "text-smedium", // this is a typo, text-sm or text-md,
     xsmall: "text-xs",
     xxsmall: "text-xs",
     custom: "",
